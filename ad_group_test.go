@@ -2,7 +2,6 @@ package gads
 
 import (
 	"testing"
-	//  "encoding/xml"
 )
 
 func testAdGroupService(t *testing.T) (service *AdGroupService) {
@@ -20,10 +19,10 @@ func testAdGroup(t *testing.T) (AdGroup, func()) {
 					Status:     "PAUSED",
 					CampaignId: campaign.Id,
 					BiddingStrategyConfiguration: []BiddingStrategyConfiguration{
-						BiddingStrategyConfiguration{
+						{
 							StrategyType: "MANUAL_CPC",
 							Bids: []Bid{
-								Bid{
+								{
 									Type:   "CpcBid",
 									Amount: 10000,
 								},

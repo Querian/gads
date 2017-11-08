@@ -16,7 +16,6 @@ type LocationCriterion struct {
 	Location      Location `xml:"location"`
 	CanonicalName string   `xml:"canonicalName,omitempty"`
 	Reach         string   `xml:"reach,omitempty"`
-	Locale        string   `xml:"locale,omitempty"`
 	SearchTerm    string   `xml:"searchTerm"`
 }
 

@@ -12,12 +12,60 @@ func NewConstantDataService(auth *Auth) *ConstantDataService {
 	return &ConstantDataService{Auth: *auth}
 }
 
+type ProductBiddingCategoryData struct {
+	Type           string `xml:"type"`
+	DimensionValue struct {
+		Type   string `xml:"type"`
+		Values int64  `xml:"value"`
+	} `xml:"dimensionValue"`
+	ParentDimensionValue struct {
+		Type   string `xml:"type"`
+		Values int64  `xml:"value"`
+	} `xml:"parentDimensionValue"`
+	Country      string `xml:"country"`
+	Status       string `xml:"status"`
+	DisplayValue struct {
+		Key   string `xml:"key"`
+		Value string `xml:"value"`
+	} `xml:"displayValue"`
+}
+
+func (s *ConstantDataService) GetProductBiddingCategoryDatas(selector Selector) (datas []ProductBiddingCategoryData, err error) {
+	selector.XMLName = xml.Name{"", "selector"}
+	respBody, err := s.Auth.request(
+		constantDataServiceUrl,
+		"getProductBiddingCategoryData",
+		struct {
+			XMLName xml.Name
+			Sel     Selector
+		}{
+			XMLName: xml.Name{
+				Space: baseUrl,
+				Local: "getProductBiddingCategoryData",
+			},
+			Sel: selector,
+		},
+	)
+
+	if err != nil {
+		return datas, err
+	}
+	getResp := struct {
+		Categories []ProductBiddingCategoryData `xml:"rval"`
+	}{}
+	err = xml.Unmarshal([]byte(respBody), &getResp)
+	if err != nil {
+		return datas, err
+	}
+	return getResp.Categories, err
+}
+
 func (s *ConstantDataService) GetAgeRangeCriterion() (ageRanges []AgeRangeCriterion, err error) {
 	respBody, err := s.Auth.request(
 		constantDataServiceUrl,
 		"getAgeRangeCriterion",
 		struct {
-			XMLName xml.Name `xml:"https://adwords.google.com/api/adwords/cm/v201309 getAgeRangeCriterion"`
+			XMLName xml.Name `xml:"https://adwords.google.com/api/adwords/cm/v201710 getAgeRangeCriterion"`
 		}{},
 	)
 	if err != nil {
@@ -38,7 +86,7 @@ func (s *ConstantDataService) GetCarrierCriterion() (carriers []CarrierCriterion
 		constantDataServiceUrl,
 		"getCarrierCriterion",
 		struct {
-			XMLName xml.Name `xml:"https://adwords.google.com/api/adwords/cm/v201309 getCarrierCriterion"`
+			XMLName xml.Name `xml:"https://adwords.google.com/api/adwords/cm/v201710 getCarrierCriterion"`
 		}{},
 	)
 	if err != nil {
@@ -59,7 +107,7 @@ func (s *ConstantDataService) GetGenderCriterion() (genders []GenderCriterion, e
 		constantDataServiceUrl,
 		"getGenderCriterion",
 		struct {
-			XMLName xml.Name `xml:"https://adwords.google.com/api/adwords/cm/v201309 getGenderCriterion"`
+			XMLName xml.Name `xml:"https://adwords.google.com/api/adwords/cm/v201710 getGenderCriterion"`
 		}{},
 	)
 	if err != nil {
@@ -80,7 +128,7 @@ func (s *ConstantDataService) GetLanguageCriterion() (languages []LanguageCriter
 		constantDataServiceUrl,
 		"getLanguageCriterion",
 		struct {
-			XMLName xml.Name `xml:"https://adwords.google.com/api/adwords/cm/v201309 getLanguageCriterion"`
+			XMLName xml.Name `xml:"https://adwords.google.com/api/adwords/cm/v201710 getLanguageCriterion"`
 		}{},
 	)
 	if err != nil {
@@ -101,7 +149,7 @@ func (s *ConstantDataService) GetMobileDeviceCriterion() (mobileDevices []Mobile
 		constantDataServiceUrl,
 		"getMobileDeviceCriterion",
 		struct {
-			XMLName xml.Name `xml:"https://adwords.google.com/api/adwords/cm/v201309 getMobileDeviceCriterion"`
+			XMLName xml.Name `xml:"https://adwords.google.com/api/adwords/cm/v201710 getMobileDeviceCriterion"`
 		}{},
 	)
 	if err != nil {
@@ -122,7 +170,7 @@ func (s *ConstantDataService) GetOperatingSystemVersionCriterion() (operatingSys
 		constantDataServiceUrl,
 		"getOperatingSystemVersionCriterion",
 		struct {
-			XMLName xml.Name `xml:"https://adwords.google.com/api/adwords/cm/v201309 getOperatingSystemVersionCriterion"`
+			XMLName xml.Name `xml:"https://adwords.google.com/api/adwords/cm/v201710 getOperatingSystemVersionCriterion"`
 		}{},
 	)
 	if err != nil {
@@ -143,7 +191,7 @@ func (s *ConstantDataService) GetUserInterestCriterion() (userInterests []UserIn
 		constantDataServiceUrl,
 		"getUserInterestCriterion",
 		struct {
-			XMLName xml.Name `xml:"https://adwords.google.com/api/adwords/cm/v201309 getUserInterestCriterion"`
+			XMLName xml.Name `xml:"https://adwords.google.com/api/adwords/cm/v201710 getUserInterestCriterion"`
 		}{},
 	)
 	if err != nil {
@@ -164,7 +212,7 @@ func (s *ConstantDataService) GetVerticalCriterion() (verticals []VerticalCriter
 		constantDataServiceUrl,
 		"getVerticalCriterion",
 		struct {
-			XMLName xml.Name `xml:"https://adwords.google.com/api/adwords/cm/v201309 getVerticalCriterion"`
+			XMLName xml.Name `xml:"https://adwords.google.com/api/adwords/cm/v201710 getVerticalCriterion"`
 		}{},
 	)
 	if err != nil {

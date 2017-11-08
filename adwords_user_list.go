@@ -1,9 +1,6 @@
 package gads
 
-import (
-	"encoding/xml"
-	"fmt"
-)
+import "encoding/xml"
 
 type AdwordsUserListService struct {
 	Auth
@@ -19,9 +16,9 @@ type UserListLogicalRule struct {
 }
 
 type UserListConversionType struct {
-	Id       *int64
-	Name     string
-	Category *string `xml:"category"` // "BOOMERANG_EVENT", "OTHER"
+	Id       *int64  `xml:"id,omitempty"`
+	Name     string  `xml:"name"`
+	Category *string `xml:"category,omitempty"` // "BOOMERANG_EVENT", "OTHER"
 }
 
 // Rule structs
@@ -51,19 +48,19 @@ type Rule struct {
 	Groups []RuleItemGroup `xml:"groups"`
 }
 
-type UserListOperations struct {
-}
+type UserListOperations map[string][]UserList
 
 type UserList struct {
-	Id                    int64   `xml:"id"`
-	Readonly              *bool   `xml:"isReadOnly"`
+	Id                    int64   `xml:"id,omitempty"`
+	Type                  string  `xml:"xsi:type,attr"`
+	Readonly              *bool   `xml:"isReadOnly,omitempty"`
 	Name                  string  `xml:"name"`
-	Description           string  `xml:"description"`
+	Description           string  `xml:"description,omitempty"`
 	Status                string  `xml:"status"` // membership status "OPEN", "CLOSED"
-	IntegrationCode       string  `xml:"integrationCode"`
-	AccessReason          string  `xml:"accessReason"`          // account access resson "OWNER", "SHARED", "LICENSED", "SUBSCRIBED"
-	AccountUserListStatus string  `xml:"accountUserListStatus"` // if share is still active "ACTIVE", "INACTIVE"
-	MembershipLifeSpan    int64   `xml:"membershipLifeSpan"`    // number of days cookie stays on list
+	IntegrationCode       string  `xml:"integrationCode,omitempty"`
+	AccessReason          string  `xml:"accessReason,omitempty"`          // account access resson "OWNER", "SHARED", "LICENSED", "SUBSCRIBED"
+	AccountUserListStatus string  `xml:"accountUserListStatus,omitempty"` // if share is still active "ACTIVE", "INACTIVE"
+	MembershipLifeSpan    int64   `xml:"membershipLifeSpan"`              // number of days cookie stays on list
 	Size                  *int64  `xml:"size,omitempty"`
 	SizeRange             *string `xml:"sizeRange,omitempty"`          // size range "LESS_THEN_FIVE_HUNDRED","LESS_THAN_ONE_THOUSAND", "ONE_THOUSAND_TO_TEN_THOUSAND","TEN_THOUSAND_TO_FIFTY_THOUSAND","FIFTY_THOUSAND_TO_ONE_HUNDRED_THOUSAND","ONE_HUNDRED_THOUSAND_TO_THREE_HUNDRED_THOUSAND","THREE_HUNDRED_THOUSAND_TO_FIVE_HUNDRED_THOUSAND","FIVE_HUNDRED_THOUSAND_TO_ONE_MILLION","ONE_MILLION_TO_TWO_MILLION","TWO_MILLION_TO_THREE_MILLION","THREE_MILLION_TO_FIVE_MILLION","FIVE_MILLION_TO_TEN_MILLION","TEN_MILLION_TO_TWENTY_MILLION","TWENTY_MILLION_TO_THIRTY_MILLION","THIRTY_MILLION_TO_FIFTY_MILLION","OVER_FIFTY_MILLION"
 	SizeForSearch         *int64  `xml:"sizeForSearch,omitempty"`      // estimated number of google.com users in this group
@@ -108,6 +105,7 @@ func NewLogicalUserList(name, description, status, integrationCode string, membe
 func NewBasicUserList(name, description, status, integrationCode string, membershipLifeSpan int64, conversionTypes []UserListConversionType) (adwordsUserList UserList) {
 	return UserList{
 		Name:               name,
+		Type:               "BasicUserList",
 		Description:        description,
 		Status:             status,
 		IntegrationCode:    integrationCode,
@@ -193,7 +191,7 @@ func NewSimilarUserList(name, description, status, integrationCode string, membe
 //
 // Relevant documentation
 //
-//     https://developers.google.com/adwords/api/docs/reference/v201409/AdwordsUserListService#get
+//     https://developers.google.com/adwords/api/docs/reference/v201710/AdwordsUserListService#get
 //
 func (s AdwordsUserListService) Get(selector Selector) (userLists []UserList, err error) {
 	selector.XMLName = xml.Name{"", "serviceSelector"}
@@ -205,7 +203,7 @@ func (s AdwordsUserListService) Get(selector Selector) (userLists []UserList, er
 			Sel     Selector
 		}{
 			XMLName: xml.Name{
-				Space: baseUrl,
+				Space: rmktgBaseUrl,
 				Local: "get",
 			},
 			Sel: selector,
@@ -218,7 +216,7 @@ func (s AdwordsUserListService) Get(selector Selector) (userLists []UserList, er
 		Size      int64      `xml:"rval>totalNumEntries"`
 		UserLists []UserList `xml:"rval>entries"`
 	}{}
-	fmt.Printf("%s\n", respBody)
+
 	err = xml.Unmarshal([]byte(respBody), &getResp)
 	if err != nil {
 		return userLists, err
@@ -230,8 +228,51 @@ func (s AdwordsUserListService) Get(selector Selector) (userLists []UserList, er
 //
 // Relevant documentation
 //
-//     https://developers.google.com/adwords/api/docs/reference/v201409/AdwordsUserListService#mutate
+//     https://developers.google.com/adwords/api/docs/reference/v201710/AdwordsUserListService#mutate
 //
-func (s *AdwordsUserListService) Mutate(adwordsUserListOperations UserListOperations) (adwordsUserLists []UserList, err error) {
-	return adwordsUserLists, ERROR_NOT_YET_IMPLEMENTED
+func (s *AdwordsUserListService) Mutate(userListOperations UserListOperations) (adwordsUserLists []UserList, err error) {
+	type userListOperation struct {
+		Action   string   `xml:"https://adwords.google.com/api/adwords/cm/v201710 operator"`
+		UserList UserList `xml:"operand"`
+	}
+	operations := []userListOperation{}
+	for action, userLists := range userListOperations {
+		for _, userList := range userLists {
+			operations = append(
+				operations,
+				userListOperation{
+					Action:   action,
+					UserList: userList,
+				},
+			)
+		}
+	}
+	mutation := struct {
+		XMLName xml.Name
+		Ops     []userListOperation `xml:"operations"`
+	}{
+		XMLName: xml.Name{
+			Space: rmktgBaseUrl,
+			Local: "mutate",
+		},
+		Ops: operations,
+	}
+	respBody, err := s.Auth.request(adwordsUserListServiceUrl, "mutate", mutation)
+	if err != nil {
+		return
+	}
+	mutateResp := struct {
+		BaseResponse
+		UserLists []UserList `xml:"rval>value"`
+	}{}
+	err = xml.Unmarshal([]byte(respBody), &mutateResp)
+	if err != nil {
+		return
+	}
+
+	if len(mutateResp.PartialFailureErrors) > 0 {
+		err = mutateResp.PartialFailureErrors
+	}
+
+	return mutateResp.UserLists, err
 }
