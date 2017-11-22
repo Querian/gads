@@ -1,8 +1,6 @@
 package gads
 
-import (
-	"testing"
-)
+import "testing"
 
 func testBudgetService(t *testing.T) (service *BudgetService) {
 	return &BudgetService{Auth: testAuthSetup(t)}
@@ -15,7 +13,6 @@ func testBudget(t *testing.T) (Budget, func()) {
 			"ADD": {
 				Budget{
 					Name:     "testbudget " + rand_str(10),
-					Period:   "DAILY",
 					Amount:   50000000,
 					Delivery: "STANDARD",
 				},
@@ -41,13 +38,11 @@ func TestBudget(t *testing.T) {
 			"ADD": {
 				Budget{
 					Name:     "testbudget " + rand_str(10),
-					Period:   "DAILY",
 					Amount:   50000000,
 					Delivery: "STANDARD",
 				},
 				Budget{
 					Name:     "test budget " + rand_str(10),
-					Period:   "DAILY",
 					Amount:   50000000,
 					Delivery: "STANDARD",
 				},
@@ -71,7 +66,6 @@ func TestBudget(t *testing.T) {
 			Fields: []string{
 				"BudgetId",
 				"BudgetName",
-				"Period",
 				"Amount",
 				"DeliveryMethod",
 				"BudgetReferenceCount",

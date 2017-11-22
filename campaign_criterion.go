@@ -4,74 +4,18 @@ import (
 	//  "strings"
 	//  "strconv"
 	"encoding/xml"
-	"fmt"
 )
 
-type CampaignCriterionService struct {
-	Auth
-}
-
-func NewCampaignCriterionService(auth *Auth) *CampaignCriterionService {
-	return &CampaignCriterionService{Auth: *auth}
-}
-
 type CampaignCriterion struct {
+	Type        string    `xml:"xsi:type,attr,omitempty"`
 	CampaignId  int64     `xml:"campaignId"`
 	Criterion   Criterion `xml:"criterion"`
-	BidModifier float64   `xml:"bidModifier,omitempty"`
+	BidModifier *float64  `xml:"bidModifier,omitempty"`
+	IsNegative  bool      `xml:"isNegative"`
 	Errors      []error   `xml:"-"`
 }
 
-func (cc CampaignCriterion) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
-	isNegative := false
-	//fmt.Printf("processing -> %#v\n",ncc)
-	start.Attr = append(
-		start.Attr,
-		xml.Attr{
-			xml.Name{"http://www.w3.org/2001/XMLSchema-instance", "type"},
-			"CampaignCriterion",
-		},
-	)
-	e.EncodeToken(start)
-	e.EncodeElement(&cc.CampaignId, xml.StartElement{Name: xml.Name{"", "campaignId"}})
-	e.EncodeElement(&isNegative, xml.StartElement{Name: xml.Name{"", "isNegative"}})
-	if err := criterionMarshalXML(cc.Criterion, e); err != nil {
-		return err
-	}
-	e.EncodeToken(start.End())
-	return nil
-}
-
-type NegativeCampaignCriterion struct {
-	CampaignId  int64     `xml:"campaignId"`
-	Criterion   Criterion `xml:"criterion"`
-	BidModifier float64   `xml:"bidModifier,omitempty"`
-	Errors      []error   `xml:"-"`
-}
-
-type CampaignCriterions []interface{}
-type CampaignCriterionOperations map[string]CampaignCriterions
-
-func (ncc NegativeCampaignCriterion) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
-	isNegative := true
-	//fmt.Printf("processing -> %#v\n",ncc)
-	start.Attr = append(
-		start.Attr,
-		xml.Attr{
-			xml.Name{"http://www.w3.org/2001/XMLSchema-instance", "type"},
-			"NegativeCampaignCriterion",
-		},
-	)
-	e.EncodeToken(start)
-	e.EncodeElement(&ncc.CampaignId, xml.StartElement{Name: xml.Name{"", "campaignId"}})
-	e.EncodeElement(&isNegative, xml.StartElement{Name: xml.Name{"", "isNegative"}})
-	criterionMarshalXML(ncc.Criterion, e)
-	e.EncodeToken(start.End())
-	return nil
-}
-
-func (ccs *CampaignCriterions) UnmarshalXML(dec *xml.Decoder, start xml.StartElement) error {
-	cc := NegativeCampaignCriterion{}
+func (cc *CampaignCriterion) UnmarshalXML(dec *xml.Decoder, start xml.StartElement) error {
 	for token, err := dec.Token(); err == nil; token, err = dec.Token() {
 		if err != nil {
 			return err
@@ -89,14 +33,129 @@ func (ccs *CampaignCriterions) UnmarshalXML(dec *xml.Decoder, start xml.StartEle
 					return err
 				}
 				cc.Criterion = criterion
-			case "BidModifier":
+			case "bidModifier":
 				if err := dec.DecodeElement(&cc.BidModifier, &start); err != nil {
+					return err
+				}
+			case "isNegative":
+				if err := dec.DecodeElement(&cc.IsNegative, &start); err != nil {
 					return err
 				}
 			}
 		}
 	}
-	*ccs = append(*ccs, cc)
+	return nil
+}
+
+func (cc CampaignCriterion) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	start.Attr = append(
+		start.Attr,
+		xml.Attr{
+			xml.Name{"http://www.w3.org/2001/XMLSchema-instance", "type"},
+			"CampaignCriterion",
+		},
+	)
+	e.EncodeToken(start)
+	e.EncodeElement(&cc.CampaignId, xml.StartElement{Name: xml.Name{"", "campaignId"}})
+	e.EncodeElement(&cc.IsNegative, xml.StartElement{Name: xml.Name{"", "isNegative"}})
+	e.EncodeElement(
+		&cc.Criterion,
+		xml.StartElement{xml.Name{"", "criterion"}, []xml.Attr{}},
+	)
+
+	if cc.BidModifier != nil {
+		e.EncodeElement(&cc.BidModifier, xml.StartElement{Name: xml.Name{"", "bidModifier"}})
+	}
+
+	e.EncodeToken(start.End())
+	return nil
+}
+
+type NegativeCampaignCriterion struct {
+	Type        string    `xml:"xsi:type,attr,omitempty"`
+	CampaignId  int64     `xml:"campaignId"`
+	IsNegative  bool      `xml:"isNegative"`
+	Criterion   Criterion `xml:"criterion"`
+	BidModifier float64   `xml:"bidModifier,omitempty"`
+	Errors      []error   `xml:"-"`
+}
+
+func (cc *NegativeCampaignCriterion) UnmarshalXML(dec *xml.Decoder, start xml.StartElement) error {
+	for token, err := dec.Token(); err == nil; token, err = dec.Token() {
+		if err != nil {
+			return err
+		}
+		switch start := token.(type) {
+		case xml.StartElement:
+			switch start.Name.Local {
+			case "campaignId":
+				if err := dec.DecodeElement(&cc.CampaignId, &start); err != nil {
+					return err
+				}
+			case "criterion":
+				criterion, err := criterionUnmarshalXML(dec, start)
+				if err != nil {
+					return err
+				}
+				cc.Criterion = criterion
+			case "bidModifier":
+				if err := dec.DecodeElement(&cc.BidModifier, &start); err != nil {
+					return err
+				}
+			case "isNegative":
+				if err := dec.DecodeElement(&cc.IsNegative, &start); err != nil {
+					return err
+				}
+			}
+		}
+	}
+	return nil
+}
+
+func (ncc NegativeCampaignCriterion) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	isNegative := true
+	//fmt.Printf("processing -> %#v\n",ncc)
+	start.Attr = append(
+		start.Attr,
+		xml.Attr{
+			xml.Name{"http://www.w3.org/2001/XMLSchema-instance", "type"},
+			"NegativeCampaignCriterion",
+		},
+	)
+	e.EncodeToken(start)
+	e.EncodeElement(&ncc.CampaignId, xml.StartElement{Name: xml.Name{"", "campaignId"}})
+	e.EncodeElement(&isNegative, xml.StartElement{Name: xml.Name{"", "isNegative"}})
+	e.EncodeElement(
+		&ncc.Criterion,
+		xml.StartElement{xml.Name{"", "criterion"}, []xml.Attr{}},
+	)
+	e.EncodeToken(start.End())
+	return nil
+}
+
+type CampaignCriterions []interface{}
+type CampaignCriterionOperations map[string]CampaignCriterions
+
+func (ccs *CampaignCriterions) UnmarshalXML(dec *xml.Decoder, start xml.StartElement) error {
+	campaignCriterionType, _ := findAttr(start.Attr, xml.Name{
+		Space: "http://www.w3.org/2001/XMLSchema-instance", Local: "type"})
+
+	switch campaignCriterionType {
+	case "NegativeCampaignCriterion":
+		cc := NegativeCampaignCriterion{}
+		err := dec.DecodeElement(&cc, &start)
+		if err != nil {
+			return err
+		}
+		*ccs = append(*ccs, cc)
+	default:
+		cc := CampaignCriterion{}
+		err := dec.DecodeElement(&cc, &start)
+		if err != nil {
+			return err
+		}
+		*ccs = append(*ccs, cc)
+	}
 	return nil
 }
 
@@ -132,6 +191,14 @@ func NewNegativeCampaignCriterion(campaignId int64, bidModifier float64, criteri
 }
 */
 
+type CampaignCriterionService struct {
+	Auth
+}
+
+func NewCampaignCriterionService(auth *Auth) *CampaignCriterionService {
+	return &CampaignCriterionService{Auth: *auth}
+}
+
 func (s *CampaignCriterionService) Get(selector Selector) (campaignCriterions CampaignCriterions, totalCount int64, err error) {
 	selector.XMLName = xml.Name{"", "serviceSelector"}
 	respBody, err := s.Auth.request(
@@ -155,7 +222,7 @@ func (s *CampaignCriterionService) Get(selector Selector) (campaignCriterions Ca
 		Size               int64              `xml:"rval>totalNumEntries"`
 		CampaignCriterions CampaignCriterions `xml:"rval>entries"`
 	}{}
-	fmt.Printf("%s\n", respBody)
+
 	err = xml.Unmarshal([]byte(respBody), &getResp)
 	if err != nil {
 		return campaignCriterions, totalCount, err
@@ -223,15 +290,21 @@ func (s *CampaignCriterionService) Mutate(campaignCriterionOperations CampaignCr
 		//}
 	}
 	mutateResp := struct {
+		BaseResponse
 		CampaignCriterions CampaignCriterions `xml:"rval>value"`
 	}{}
 	err = xml.Unmarshal([]byte(respBody), &mutateResp)
 	if err != nil {
 		return campaignCriterions, err
 	}
+
+	if len(mutateResp.PartialFailureErrors) > 0 {
+		err = mutateResp.PartialFailureErrors
+	}
+
 	return mutateResp.CampaignCriterions, err
 }
 
 func (s *CampaignCriterionService) Query(query string) (campaignCriterions CampaignCriterions, err error) {
-	return campaignCriterions, err
+	return campaignCriterions, ERROR_NOT_YET_IMPLEMENTED
 }

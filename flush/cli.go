@@ -2,7 +2,7 @@ package main
 
 import (
 	"crypto/rand"
-	"github.com/emiddleton/gads"
+	"gitlab.prod.twenga.lan/b2c-go/gads"
 	"golang.org/x/oauth2"
 	"log"
 )
@@ -83,7 +83,7 @@ func main() {
 
 	// Remove all budgets
 	bs := gads.NewBudgetService(config.Auth)
-	foundBudgets, err := bs.Get(gads.Selector{Fields: []string{"BudgetId", "BudgetName", "Period", "Amount", "DeliveryMethod"}})
+	foundBudgets, err := bs.Get(gads.Selector{Fields: []string{"BudgetId", "BudgetName", "Amount", "DeliveryMethod"}})
 	if err != nil {
 		log.Fatal(err)
 	}

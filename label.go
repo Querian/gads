@@ -53,7 +53,7 @@ type LabelOperations map[string][]Label
 //
 // Relevant documentation
 //
-//     https://developers.google.com/adwords/api/docs/reference/v201409/LabelService#get
+//     https://developers.google.com/adwords/api/docs/reference/v201710/LabelService#get
 //
 func (s LabelService) Get(selector Selector) (labels []Label, totalCount int64, err error) {
 	selector.XMLName = xml.Name{"", "serviceSelector"}
@@ -107,7 +107,7 @@ func (s LabelService) Get(selector Selector) (labels []Label, totalCount int64, 
 //
 // Relevant documentation
 //
-//     https://developers.google.com/adwords/api/docs/reference/v201409/LabelService#mutate
+//     https://developers.google.com/adwords/api/docs/reference/v201710/LabelService#mutate
 //
 func (s *LabelService) Mutate(labelOperations LabelOperations) (labels []Label, err error) {
 	type labelOperation struct {
@@ -140,12 +140,18 @@ func (s *LabelService) Mutate(labelOperations LabelOperations) (labels []Label, 
 		return labels, err
 	}
 	mutateResp := struct {
+		BaseResponse
 		Labels []Label `xml:"rval>value"`
 	}{}
 	err = xml.Unmarshal([]byte(respBody), &mutateResp)
 	if err != nil {
 		return labels, err
 	}
+
+	if len(mutateResp.PartialFailureErrors) > 0 {
+		err = mutateResp.PartialFailureErrors
+	}
+
 	return mutateResp.Labels, err
 }
 
@@ -153,7 +159,7 @@ func (s *LabelService) Mutate(labelOperations LabelOperations) (labels []Label, 
 //
 // Relevant documentation
 //
-//     https://developers.google.com/adwords/api/docs/reference/v201409/LabelService#query
+//     https://developers.google.com/adwords/api/docs/reference/v201710/LabelService#query
 //
 func (s *LabelService) Query(query string) (labels []Label, totalCount int64, err error) {
 	return labels, totalCount, ERROR_NOT_YET_IMPLEMENTED
