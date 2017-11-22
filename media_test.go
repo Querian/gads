@@ -14,7 +14,7 @@ func testMediaService(t *testing.T) (service *MediaService) {
 func TestMedia(t *testing.T) {
 
 	// load image into []byte
-	imageUrl := "http://www.google.com/intl/en/adwords/select/images/samples/inline.jpg"
+	imageUrl := "https://orig00.deviantart.net/7088/f/2009/240/5/8/582121d950a606ed47bda5e181a770af.jpg"
 	resp, err := http.Get(imageUrl)
 	if err != nil {
 		panic(err)
@@ -25,12 +25,12 @@ func TestMedia(t *testing.T) {
 	ms := testMediaService(t)
 	images, err := ms.Upload(
 		[]Media{
-			NewImage("image1", "IMAGE", "IMAGE_JPEG", body),
-			NewImage("image2", "IMAGE", "IMAGE_JPEG", body),
+			NewImage("image3", "IMAGE", "IMAGE_JPEG", body),
+			NewImage("image4", "IMAGE", "IMAGE_JPEG", body),
 		},
 	)
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 	fmt.Printf("%#v", images)
 
@@ -58,11 +58,12 @@ func TestMedia(t *testing.T) {
 		)
 		if err != nil {
 			fmt.Printf("Error occured finding medias")
+			t.Fatal(err)
 		}
 		for _, m := range medias {
 			for _, d := range m.Dimensions {
 				if d.Name == "FULL" {
-					fmt.Printf("Entry ID %d with dimensions %dx%d and MIME type is '%s'\n", m.Id, d.Height, d.Width, m.MimeType)
+					//fmt.Printf("Entry ID %d with dimensions %dx%d and MIME type is '%s'\n", m.Id, d.Height, d.Width, m.MimeType)
 				}
 			}
 		}
@@ -70,7 +71,7 @@ func TestMedia(t *testing.T) {
 		offset += pageSize
 		paging.Offset = offset
 		if totalCount < offset {
-			fmt.Printf("\tFound %d entries.", totalCount)
+			//fmt.Printf("\tFound %d entries.", totalCount)
 			break
 		}
 	}

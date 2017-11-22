@@ -21,7 +21,6 @@ func NewBudgetService(auth *Auth) *BudgetService {
 type Budget struct {
 	Id         int64  `xml:"budgetId,omitempty"`           // A unique identifier
 	Name       string `xml:"name"`                         // A descriptive name
-	Period     string `xml:"period"`                       // The period to spend the budget
 	Amount     int64  `xml:"amount>microAmount"`           // The amount in cents
 	Delivery   string `xml:"deliveryMethod"`               // The rate at which the budget spent. valid options are STANDARD or ACCELERATED.
 	References int64  `xml:"referenceCount,omitempty"`     // The number of campaigns using the budget
@@ -103,11 +102,17 @@ func (s *BudgetService) Mutate(budgetOperations BudgetOperations) (budgets []Bud
 		return budgets, err
 	}
 	mutateResp := struct {
+		BaseResponse
 		Budgets []Budget `xml:"rval>value"`
 	}{}
 	err = xml.Unmarshal([]byte(respBody), &mutateResp)
 	if err != nil {
 		return budgets, err
 	}
+
+	if len(mutateResp.PartialFailureErrors) > 0 {
+		err = mutateResp.PartialFailureErrors
+	}
+
 	return mutateResp.Budgets, err
 }

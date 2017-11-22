@@ -37,7 +37,9 @@ func (agcs *AdGroupCriterions) UnmarshalXML(dec *xml.Decoder, start xml.StartEle
 	adGroupCriterionType, err := findAttr(start.Attr, xml.Name{
 		Space: "http://www.w3.org/2001/XMLSchema-instance", Local: "type"})
 	if err != nil {
-		return err
+		// do not process elements that are not typed (probably partial failure)
+		_ = dec.Skip()
+		return nil
 	}
 	switch adGroupCriterionType {
 	case "BiddableAdGroupCriterion":
@@ -55,7 +57,9 @@ func (agcs *AdGroupCriterions) UnmarshalXML(dec *xml.Decoder, start xml.StartEle
 		}
 		*agcs = append(*agcs, nagc)
 	default:
-		return fmt.Errorf("unknown AdGroupCriterion -> %#v", adGroupCriterionType)
+		if StrictMode {
+			return fmt.Errorf("unknown AdGroupCriterion -> %#v", adGroupCriterionType)
+		}
 	}
 	return nil
 }
@@ -136,7 +140,7 @@ type AdGroupCriterionOperations map[string]AdGroupCriterions
 //
 // Relevant documentation
 //
-//     https://developers.google.com/adwords/api/docs/reference/v201409/AdGroupCriterionService#get
+//     https://developers.google.com/adwords/api/docs/reference/v201710/AdGroupCriterionService#get
 //
 func (s AdGroupCriterionService) Get(selector Selector) (adGroupCriterions AdGroupCriterions, totalCount int64, err error) {
 	selector.XMLName = xml.Name{"", "serviceSelector"}
@@ -161,7 +165,6 @@ func (s AdGroupCriterionService) Get(selector Selector) (adGroupCriterions AdGro
 		Size              int64             `xml:"rval>totalNumEntries"`
 		AdGroupCriterions AdGroupCriterions `xml:"rval>entries"`
 	}{}
-	fmt.Printf("%s\n", respBody)
 	err = xml.Unmarshal([]byte(respBody), &getResp)
 	if err != nil {
 		return adGroupCriterions, totalCount, err
@@ -198,7 +201,7 @@ func (s AdGroupCriterionService) Get(selector Selector) (adGroupCriterions AdGro
 //
 // Relevant documentation
 //
-//     https://developers.google.com/adwords/api/docs/reference/v201409/AdGroupCriterionService#mutate
+//     https://developers.google.com/adwords/api/docs/reference/v201710/AdGroupCriterionService#mutate
 //
 func (s *AdGroupCriterionService) Mutate(adGroupCriterionOperations AdGroupCriterionOperations) (adGroupCriterions AdGroupCriterions, err error) {
 	type adGroupCriterionOperation struct {
@@ -206,14 +209,32 @@ func (s *AdGroupCriterionService) Mutate(adGroupCriterionOperations AdGroupCrite
 		AdGroupCriterion interface{} `xml:"operand"`
 	}
 	operations := []adGroupCriterionOperation{}
-	for action, adGroupCriterions := range adGroupCriterionOperations {
-		for _, adGroupCriterion := range adGroupCriterions {
-			operations = append(operations,
-				adGroupCriterionOperation{
-					Action:           action,
-					AdGroupCriterion: adGroupCriterion,
-				},
-			)
+
+	// special case for this service the removes must always be in first
+	for _, action := range []string{"REMOVE", "ADD", "SET"} {
+		if _, ok := adGroupCriterionOperations[action]; ok {
+			for _, adGroupCriterion := range adGroupCriterionOperations[action] {
+
+				// fields are prohibited
+				if t, ok := adGroupCriterion.(BiddableAdGroupCriterion); ok {
+					if t.BiddingStrategyConfiguration != nil {
+						t.BiddingStrategyConfiguration.Scheme = nil
+						// Can't set any value except NONE on Keyword Criterion
+						// https://developers.google.com/adwords/api/docs/guides/bidding#migrating_the_bidding_strategy_configuration_override_of_ad_groups_and_keywords
+						if t.Type != "Keyword" || t.BiddingStrategyConfiguration.StrategyType != "NONE" {
+							t.BiddingStrategyConfiguration.StrategyType = ""
+						}
+						t.BiddingStrategyConfiguration.StrategyId = 0
+					}
+				}
+
+				operations = append(operations,
+					adGroupCriterionOperation{
+						Action:           action,
+						AdGroupCriterion: adGroupCriterion,
+					},
+				)
+			}
 		}
 	}
 	mutation := struct {
@@ -231,11 +252,16 @@ func (s *AdGroupCriterionService) Mutate(adGroupCriterionOperations AdGroupCrite
 		return adGroupCriterions, err
 	}
 	mutateResp := struct {
+		BaseResponse
 		AdGroupCriterions AdGroupCriterions `xml:"rval>value"`
 	}{}
 	err = xml.Unmarshal([]byte(respBody), &mutateResp)
 	if err != nil {
 		return adGroupCriterions, err
+	}
+
+	if len(mutateResp.PartialFailureErrors) > 0 {
+		err = mutateResp.PartialFailureErrors
 	}
 
 	return mutateResp.AdGroupCriterions, err
@@ -259,7 +285,7 @@ func (s *AdGroupCriterionService) Mutate(adGroupCriterionOperations AdGroupCrite
 //
 // Relevant documentation
 //
-//     https://developers.google.com/adwords/api/docs/reference/v201409/AdGroupCriterionService#mutateLabel
+//     https://developers.google.com/adwords/api/docs/reference/v201710/AdGroupCriterionService#mutateLabel
 //
 func (s *AdGroupCriterionService) MutateLabel(adGroupCriterionLabelOperations AdGroupCriterionLabelOperations) (adGroupCriterionLabels []AdGroupCriterionLabel, err error) {
 	type adGroupCriterionLabelOperation struct {
@@ -291,11 +317,16 @@ func (s *AdGroupCriterionService) MutateLabel(adGroupCriterionLabelOperations Ad
 		return adGroupCriterionLabels, err
 	}
 	mutateResp := struct {
+		BaseResponse
 		AdGroupCriterionLabels []AdGroupCriterionLabel `xml:"rval>value"`
 	}{}
 	err = xml.Unmarshal([]byte(respBody), &mutateResp)
 	if err != nil {
 		return adGroupCriterionLabels, err
+	}
+
+	if len(mutateResp.PartialFailureErrors) > 0 {
+		err = mutateResp.PartialFailureErrors
 	}
 
 	return mutateResp.AdGroupCriterionLabels, err
@@ -305,7 +336,7 @@ func (s *AdGroupCriterionService) MutateLabel(adGroupCriterionLabelOperations Ad
 //
 // Relevant documentation
 //
-//     https://developers.google.com/adwords/api/docs/reference/v201409/AdGroupCriterionService#query
+//     https://developers.google.com/adwords/api/docs/reference/v201710/AdGroupCriterionService#query
 //
 func (s *AdGroupCriterionService) Query(query string) (adGroupCriterions AdGroupCriterions, err error) {
 	return adGroupCriterions, ERROR_NOT_YET_IMPLEMENTED

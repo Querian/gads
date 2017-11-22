@@ -2,8 +2,9 @@ package gads
 
 import (
 	"fmt"
-	"golang.org/x/net/context"
 	"time"
+
+	"golang.org/x/net/context"
 )
 
 func ExampleCampaignService_Get() {
@@ -342,6 +343,7 @@ func ExampleAdGroupCriterionService_Mutate() {
 	agcs := NewAdGroupCriterionService(&authConf.Auth)
 
 	var adGroupId int64 = 1
+	destination := "http://example.com/mars"
 
 	// This example illustrates how to add multiple keywords to a given ad group.
 	adGroupCriterions, err := agcs.Mutate(
@@ -354,7 +356,7 @@ func ExampleAdGroupCriterionService_Mutate() {
 						MatchType: "BROAD",
 					},
 					UserStatus:     "PAUSED",
-					DestinationUrl: "http://example.com/mars",
+					DestinationUrl: &destination,
 				},
 				BiddableAdGroupCriterion{
 					AdGroupId: adGroupId,
@@ -464,8 +466,8 @@ func ExampleAdGroupAdService_Get() {
 			fmt.Printf("Error occured finding ad group ad")
 		}
 		for _, aga := range adGroupAds {
-			ta := aga.(TextAd)
-			fmt.Printf("Ad ID is %d, type is 'TextAd' and status is '%s'", ta.Id, ta.Status)
+			ta := aga.Ad.(TextAd)
+			fmt.Printf("Ad ID is %d, type is 'TextAd' and status is '%s'", ta.GetID(), aga.Status)
 		}
 		// Increment values to request the next page.
 		offset += pageSize
@@ -487,19 +489,17 @@ func ExampleAdGroupAdService_Mutate() {
 	adGroupAds, err := agas.Mutate(
 		AdGroupAdOperations{
 			"ADD": {
-				NewTextAd(
+				NewAdGroupExpandedTextAd(
 					adGroupId,
 					"http://www.example.com",
-					"example.com",
 					"Luxury Cruise to Mars",
 					"Visit the Red Planet in style.",
 					"Low-gravity fun for everyone!",
 					"ACTIVE",
 				),
-				NewTextAd(
+				NewAdGroupExpandedTextAd(
 					adGroupId,
 					"http://www.example.com",
-					"www.example.com",
 					"Luxury Cruise to Mars",
 					"Enjoy your stay at Red Planet.",
 					"Buy your tickets now!",
@@ -513,20 +513,19 @@ func ExampleAdGroupAdService_Mutate() {
 	} else {
 		fmt.Printf("Added %d ad(s) to ad group ID %d:", len(adGroupAds), adGroupId)
 		for _, ada := range adGroupAds {
-			ta := ada.(TextAd)
-			fmt.Printf("\tAd ID %d, type 'TextAd' and status '%s'", ta.Id, ta.Status)
+			fmt.Printf("\tAd ID %d, type 'TextAd' and status '%s'", ada.Ad.GetID(), ada.Status)
 		}
 	}
 
 	// This example illustrates how to update an ad, setting its status to 'PAUSED'.
-	textAdId := adGroupAds[0].(TextAd).Id
+	textAdId := adGroupAds[0].Ad.GetID()
 	adGroupAds, err = agas.Mutate(
 		AdGroupAdOperations{
 			"SET": {
-				TextAd{
+				AdGroupAd{
 					AdGroupId: adGroupId,
-					Id:        textAdId,
 					Status:    "PAUSED",
+					Ad:        CommonAd{ID: textAdId},
 				},
 			},
 		},
@@ -534,18 +533,18 @@ func ExampleAdGroupAdService_Mutate() {
 	if err != nil {
 		fmt.Printf("No ads were updated.")
 	} else {
-		textAd := adGroupAds[0].(TextAd)
-		fmt.Printf("Ad ID %d was successfully updated, status set to '%s'.", textAd.Id, textAd.Status)
+		textAd := adGroupAds[0]
+		fmt.Printf("Ad ID %d was successfully updated, status set to '%s'.", textAd.Ad.GetID(), textAd.Status)
 	}
 
 	// This example removes an ad using the 'REMOVE' operator.
 	adGroupAds, err = agas.Mutate(
 		AdGroupAdOperations{
 			"SET": {
-				TextAd{
+				AdGroupAd{
 					AdGroupId: adGroupId,
-					Id:        textAdId,
-					Status:    "REMOVE",
+					Status:    "PAUSED",
+					Ad:        CommonAd{ID: textAdId},
 				},
 			},
 		},
@@ -553,7 +552,7 @@ func ExampleAdGroupAdService_Mutate() {
 	if err != nil {
 		fmt.Printf("No ads were removed.")
 	} else {
-		textAd := adGroupAds[0].(TextAd)
-		fmt.Printf("Ad ID %d was successfully removed.", textAd.Id)
+		textAd := adGroupAds[0]
+		fmt.Printf("Ad ID %d was successfully removed.", textAd.Ad.GetID())
 	}
 }

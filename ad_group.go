@@ -1,9 +1,6 @@
 package gads
 
-import (
-	"encoding/xml"
-	"fmt"
-)
+import "encoding/xml"
 
 type AdGroupService struct {
 	Auth
@@ -11,6 +8,27 @@ type AdGroupService struct {
 
 func NewAdGroupService(auth *Auth) *AdGroupService {
 	return &AdGroupService{Auth: *auth}
+}
+
+func NewAdGroupTargetSetting(s []TargetSettingDetail) AdSetting {
+	return AdSetting{
+		Type:    "TargetingSetting",
+		Details: s,
+	}
+}
+
+func NewAdGroupExplorerAutoOptimizerSetting(s bool) AdSetting {
+	return AdSetting{
+		Type:  "ExplorerAutoOptimizerSetting",
+		OptIn: &s,
+	}
+}
+
+func NewTargetSettingDetail(CriterionTypeGroup string, TargetAll bool) TargetSettingDetail {
+	return TargetSettingDetail{
+		CriterionTypeGroup: CriterionTypeGroup,
+		TargetAll:          TargetAll,
+	}
 }
 
 type TargetSettingDetail struct {
@@ -28,13 +46,14 @@ type AdSetting struct {
 
 type AdGroup struct {
 	Id                           int64                          `xml:"id,omitempty"`
-	CampaignId                   int64                          `xml:"campaignId"`
+	CampaignId                   int64                          `xml:"campaignId,omitempty"`
 	CampaignName                 string                         `xml:"campaignName,omitempty"`
-	Name                         string                         `xml:"name"`
-	Status                       string                         `xml:"status"`
+	Name                         string                         `xml:"name,omitempty"`
+	Status                       string                         `xml:"status,omitempty"`
 	Settings                     []AdSetting                    `xml:"settings,omitempty"`
-	BiddingStrategyConfiguration []BiddingStrategyConfiguration `xml:"biddingStrategyConfiguration"`
-	ContentBidCriterionTypeGroup *string                        `xml:"contentBidCriterionTypeGroup"`
+	TrackingUrlTemplate          *string                        `xml:"trackingUrlTemplate,omitempty"`
+	BiddingStrategyConfiguration []BiddingStrategyConfiguration `xml:"biddingStrategyConfiguration,omitempty"`
+	ContentBidCriterionTypeGroup *string                        `xml:"contentBidCriterionTypeGroup,omitempty"`
 }
 
 type AdGroupOperations map[string][]AdGroup
@@ -81,7 +100,7 @@ type AdGroupLabelOperations map[string][]AdGroupLabel
 //
 // Relevant documentation
 //
-//     https://developers.google.com/adwords/api/docs/reference/v201409/AdGroupService#get
+//     https://developers.google.com/adwords/api/docs/reference/v201710/AdGroupService#get
 //
 func (s *AdGroupService) Get(selector Selector) (adGroups []AdGroup, totalCount int64, err error) {
 	selector.XMLName = xml.Name{"", "serviceSelector"}
@@ -106,7 +125,6 @@ func (s *AdGroupService) Get(selector Selector) (adGroups []AdGroup, totalCount 
 		Size     int64     `xml:"rval>totalNumEntries"`
 		AdGroups []AdGroup `xml:"rval>entries"`
 	}{}
-	fmt.Printf("%s\n", respBody)
 	err = xml.Unmarshal([]byte(respBody), &getResp)
 	if err != nil {
 		return adGroups, totalCount, err
@@ -150,7 +168,7 @@ func (s *AdGroupService) Get(selector Selector) (adGroups []AdGroup, totalCount 
 //
 // Relevant documentation
 //
-//     https://developers.google.com/adwords/api/docs/reference/v201409/AdGroupService#mutate
+//     https://developers.google.com/adwords/api/docs/reference/v201710/AdGroupService#mutate
 //
 func (s *AdGroupService) Mutate(adGroupOperations AdGroupOperations) (adGroups []AdGroup, err error) {
 	type adGroupOperation struct {
@@ -160,6 +178,12 @@ func (s *AdGroupService) Mutate(adGroupOperations AdGroupOperations) (adGroups [
 	operations := []adGroupOperation{}
 	for action, adGroups := range adGroupOperations {
 		for _, adGroup := range adGroups {
+			for i := range adGroup.BiddingStrategyConfiguration {
+				// this field is not mutable and will throw an error
+				adGroup.BiddingStrategyConfiguration[i].StrategyType = ""
+				adGroup.BiddingStrategyConfiguration[i].Scheme = nil
+				adGroup.BiddingStrategyConfiguration[i].StrategyId = 0
+			}
 			operations = append(operations,
 				adGroupOperation{
 					Action:  action,
@@ -183,11 +207,16 @@ func (s *AdGroupService) Mutate(adGroupOperations AdGroupOperations) (adGroups [
 		return adGroups, err
 	}
 	mutateResp := struct {
+		BaseResponse
 		AdGroups []AdGroup `xml:"rval>value"`
 	}{}
 	err = xml.Unmarshal([]byte(respBody), &mutateResp)
 	if err != nil {
 		return adGroups, err
+	}
+
+	if len(mutateResp.PartialFailureErrors) > 0 {
+		err = mutateResp.PartialFailureErrors
 	}
 
 	return mutateResp.AdGroups, err
@@ -210,7 +239,7 @@ func (s *AdGroupService) Mutate(adGroupOperations AdGroupOperations) (adGroups [
 //
 // Relevant documentation
 //
-//     https://developers.google.com/adwords/api/docs/reference/v201409/AdGroupService#mutateLabel
+//     https://developers.google.com/adwords/api/docs/reference/v201710/AdGroupService#mutateLabel
 //
 func (s *AdGroupService) MutateLabel(adGroupLabelOperations AdGroupLabelOperations) (adGroupLabels []AdGroupLabel, err error) {
 	type adGroupLabelOperation struct {
@@ -242,11 +271,16 @@ func (s *AdGroupService) MutateLabel(adGroupLabelOperations AdGroupLabelOperatio
 		return adGroupLabels, err
 	}
 	mutateResp := struct {
+		BaseResponse
 		AdGroupLabels []AdGroupLabel `xml:"rval>value"`
 	}{}
 	err = xml.Unmarshal([]byte(respBody), &mutateResp)
 	if err != nil {
 		return adGroupLabels, err
+	}
+
+	if len(mutateResp.PartialFailureErrors) > 0 {
+		err = mutateResp.PartialFailureErrors
 	}
 
 	return mutateResp.AdGroupLabels, err
@@ -256,7 +290,7 @@ func (s *AdGroupService) MutateLabel(adGroupLabelOperations AdGroupLabelOperatio
 //
 // Relevant documentation
 //
-//     https://developers.google.com/adwords/api/docs/reference/v201409/AdGroupService#query
+//     https://developers.google.com/adwords/api/docs/reference/v201710/AdGroupService#query
 //
 func (s *AdGroupService) Query(query string) (adGroups []AdGroup, err error) {
 	return adGroups, ERROR_NOT_YET_IMPLEMENTED

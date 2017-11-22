@@ -2,9 +2,10 @@ package gads
 
 import (
 	"encoding/xml"
+	"fmt"
 )
 
-// A campaignService holds the connection information for the
+// CampaignService A campaignService holds the connection information for the
 // campaign service.
 type CampaignService struct {
 	Auth
@@ -50,6 +51,12 @@ type CampaignSetting struct {
 
 	// TrackingSetting
 	TrackingUrl *string `xml:"trackingUrl,omitempty"`
+
+	// ShoppingSetting
+	MerchantId       *int64  `xml:"merchantId,omitempty"`
+	SalesCountry     *string `xml:"salesCountry,omitempty"`
+	CampaignPriority *int    `xml:"campaignPriority"`
+	EnableLocal      *bool   `xml:"enableLocal,omitempty"`
 }
 
 func NewDynamicSearchAdsSetting(domainName, languageCode string) CampaignSetting {
@@ -82,6 +89,16 @@ func NewTrackingSetting(trackingUrl string) CampaignSetting {
 	}
 }
 
+func NewShoppingSetting(merchantID int64, salesCountry string, campaignPriority int, enableLocal bool) CampaignSetting {
+	return CampaignSetting{
+		Type:             "ShoppingSetting",
+		MerchantId:       &merchantID,
+		SalesCountry:     &salesCountry,
+		CampaignPriority: &campaignPriority,
+		EnableLocal:      &enableLocal,
+	}
+}
+
 type NetworkSetting struct {
 	TargetGoogleSearch         bool `xml:"targetGoogleSearch"`
 	TargetSearchNetwork        bool `xml:"targetSearchNetwork"`
@@ -89,9 +106,90 @@ type NetworkSetting struct {
 	TargetPartnerSearchNetwork bool `xml:"targetPartnerSearchNetwork"`
 }
 
+/*
+BIDDING SCHEME
+*/
+
+// BiddingSchemeInterface interface  for bidding scheme
+type BiddingSchemeInterface interface {
+	GetType() string
+}
+
+// BiddingScheme struct for ManualCpcBiddingScheme
 type BiddingScheme struct {
 	Type               string `xml:"http://www.w3.org/2001/XMLSchema-instance type,attr"`
 	EnhancedCpcEnabled bool   `xml:"enhancedCpcEnabled"`
+}
+
+// NewBiddingScheme returns new instance of BiddingScheme
+func NewBiddingScheme(enhancedCpcEnabled bool) *BiddingScheme {
+	return &BiddingScheme{Type: `ManualCpcBiddingScheme`, EnhancedCpcEnabled: enhancedCpcEnabled}
+}
+
+// GetType return type of bidding scheme
+func (s *BiddingScheme) GetType() string {
+	return s.Type
+}
+
+// TargetRoasBiddingScheme struct for TargetRoasBiddingScheme
+type TargetRoasBiddingScheme struct {
+	Type       string  `xml:"http://www.w3.org/2001/XMLSchema-instance type,attr"`
+	TargetRoas float64 `xml:"targetRoas"`
+	BidCeiling *int64  `xml:"bidCeiling>microAmount"`
+	BidFloor   *int64  `xml:"bidFloor>microAmount"`
+}
+
+// NewTargetRoasBiddingScheme returns new instance of TargetRoasBiddingScheme
+func NewTargetRoasBiddingScheme(targetRoas float64, bidCeiling, bidFloor *int64) *TargetRoasBiddingScheme {
+	return &TargetRoasBiddingScheme{
+		Type:       `TargetRoasBiddingScheme`,
+		TargetRoas: targetRoas,
+		BidCeiling: bidCeiling,
+		BidFloor:   bidFloor,
+	}
+}
+
+// GetType return type of bidding scheme
+func (s *TargetRoasBiddingScheme) GetType() string {
+	return s.Type
+}
+
+// EnhancedCpcBiddingScheme struct for EnhancedCpcBiddingScheme
+type EnhancedCpcBiddingScheme struct {
+	Type string `xml:"http://www.w3.org/2001/XMLSchema-instance type,attr"`
+}
+
+// NewEnhancedCpcBiddingScheme returns new instance of EnhancedCpcBiddingScheme
+func NewEnhancedCpcBiddingScheme() *EnhancedCpcBiddingScheme {
+	return &EnhancedCpcBiddingScheme{Type: `EnhancedCpcBiddingScheme`}
+}
+
+// GetType return type of bidding scheme
+func (s *EnhancedCpcBiddingScheme) GetType() string {
+	return s.Type
+}
+
+func biddingSchemeUnmarshalXML(dec *xml.Decoder, start xml.StartElement) (BiddingSchemeInterface, error) {
+	biddingSchemeType, err := findAttr(start.Attr, xml.Name{Space: "http://www.w3.org/2001/XMLSchema-instance", Local: "type"})
+	if err != nil {
+		return nil, err
+	}
+	switch biddingSchemeType {
+	case "ManualCpcBiddingScheme":
+		c := &BiddingScheme{Type: biddingSchemeType}
+		return c, dec.DecodeElement(c, &start)
+	case "TargetRoasBiddingScheme":
+		c := &TargetRoasBiddingScheme{Type: biddingSchemeType}
+		return c, dec.DecodeElement(c, &start)
+	case "EnhancedCpcBiddingScheme":
+		c := &EnhancedCpcBiddingScheme{Type: biddingSchemeType}
+		return c, dec.DecodeElement(c, &start)
+	default:
+		if StrictMode {
+			return nil, fmt.Errorf("unknown bidding scheme type %#v", biddingSchemeType)
+		}
+		return nil, nil
+	}
 }
 
 type Bid struct {
@@ -102,12 +200,53 @@ type Bid struct {
 }
 
 type BiddingStrategyConfiguration struct {
-	StrategyId     int64          `xml:"biddingStrategyId,omitempty"`
-	StrategyName   string         `xml:"biddingStrategyName,omitempty"`
-	StrategyType   string         `xml:"biddingStrategyType,omitempty"`
-	StrategySource string         `xml:"biddingStrategySource,omitempty"`
-	Scheme         *BiddingScheme `xml:"biddingScheme,omitempty"`
-	Bids           []Bid          `xml:"bids"`
+	StrategyId     int64                  `xml:"biddingStrategyId,omitempty"`
+	StrategyName   string                 `xml:"biddingStrategyName,omitempty"`
+	StrategyType   string                 `xml:"biddingStrategyType,omitempty"`
+	StrategySource string                 `xml:"biddingStrategySource,omitempty"`
+	Scheme         BiddingSchemeInterface `xml:"biddingScheme,omitempty"`
+	Bids           []Bid                  `xml:"bids"`
+}
+
+// UnmarshalXML special unmarshal for the different bidding schemes
+func (b *BiddingStrategyConfiguration) UnmarshalXML(dec *xml.Decoder, start xml.StartElement) error {
+	for token, err := dec.Token(); err == nil; token, err = dec.Token() {
+		if err != nil {
+			return err
+		}
+		switch start := token.(type) {
+		case xml.StartElement:
+			switch start.Name.Local {
+			case "biddingStrategyId":
+				if err := dec.DecodeElement(&b.StrategyId, &start); err != nil {
+					return err
+				}
+			case "biddingStrategyName":
+				if err := dec.DecodeElement(&b.StrategyName, &start); err != nil {
+					return err
+				}
+			case "biddingStrategyType":
+				if err := dec.DecodeElement(&b.StrategyType, &start); err != nil {
+					return err
+				}
+			case "biddingStrategySource":
+				if err := dec.DecodeElement(&b.StrategySource, &start); err != nil {
+					return err
+				}
+			case "biddingScheme":
+				bs, err := biddingSchemeUnmarshalXML(dec, start)
+				if err != nil {
+					return err
+				}
+				b.Scheme = bs
+			case "bids":
+				if err := dec.DecodeElement(&b.Bids, &start); err != nil {
+					return err
+				}
+			}
+		}
+	}
+	return nil
 }
 
 type CustomParameter struct {
@@ -123,24 +262,26 @@ type CustomParameters struct {
 
 type Campaign struct {
 	Id                             int64                           `xml:"id,omitempty"`
-	Name                           string                          `xml:"name"`
-	Status                         string                          `xml:"status"`                  // Status: "ENABLED", "PAUSED", "REMOVED"
+	Name                           string                          `xml:"name,omitempty"`
+	Status                         string                          `xml:"status,omitempty"`        // Status: "ENABLED", "PAUSED", "REMOVED"
 	ServingStatus                  *string                         `xml:"servingStatus,omitempty"` // ServingStatus: "SERVING", "NONE", "ENDED", "PENDING", "SUSPENDED"
-	StartDate                      string                          `xml:"startDate"`
+	StartDate                      string                          `xml:"startDate,omitempty"`
 	EndDate                        *string                         `xml:"endDate,omitempty"`
-	BudgetId                       int64                           `xml:"budget>budgetId"`
-	ConversionOptimizerEligibility *conversionOptimizerEligibility `xml:"conversionOptimizerEligibility"`
-	AdServingOptimizationStatus    string                          `xml:"adServingOptimizationStatus"`
-	FrequencyCap                   *FrequencyCap                   `xml:"frequencyCap"`
+	BudgetId                       int64                           `xml:"budget>budgetId,omitempty"`
+	ConversionOptimizerEligibility *conversionOptimizerEligibility `xml:"conversionOptimizerEligibility,omitempty"`
+	AdServingOptimizationStatus    string                          `xml:"adServingOptimizationStatus,omitempty"`
+	FrequencyCap                   *FrequencyCap                   `xml:"frequencyCap,omitempty"`
 	Settings                       []CampaignSetting               `xml:"settings"`
 	AdvertisingChannelType         string                          `xml:"advertisingChannelType,omitempty"`    // "UNKNOWN", "SEARCH", "DISPLAY", "SHOPPING"
 	AdvertisingChannelSubType      *string                         `xml:"advertisingChannelSubType,omitempty"` // "UNKNOWN", "SEARCH_MOBILE_APP", "DISPLAY_MOBILE_APP", "SEARCH_EXPRESS", "DISPLAY_EXPRESS"
 	NetworkSetting                 *NetworkSetting                 `xml:"networkSetting"`
-	Labels                         []Label                         `xml:"labels"`
-	BiddingStrategyConfiguration   *BiddingStrategyConfiguration   `xml:"biddingStrategyConfiguration"`
+	Labels                         []Label                         `xml:"labels,omitempty"`
+	BiddingStrategyConfiguration   *BiddingStrategyConfiguration   `xml:"biddingStrategyConfiguration,omitempty"`
 	ForwardCompatibilityMap        *map[string]string              `xml:"forwardCompatibilityMap,omitempty"`
-	TrackingUrlTemplate            *string                         `xml:"trackingUrlTemplate"`
-	UrlCustomParameters            *CustomParameters               `xml:"urlCustomParametes"`
+	TrackingUrlTemplate            *string                         `xml:"trackingUrlTemplate,omitempty"`
+	UrlCustomParameters            *CustomParameters               `xml:"urlCustomParameters,omitempty"`
+	BaseCampaignID                 *int64                          `xml:"baseCampaignId,omitempty"`
+	CampaignTrialType              *string                         `xml:"campaignTrialType,omitempty"`
 	Errors                         []error                         `xml:"-"`
 }
 
@@ -184,7 +325,7 @@ type CampaignLabelOperations map[string][]CampaignLabel
 //
 // Relevant documentation
 //
-//     https://developers.google.com/adwords/api/docs/reference/v201409/CampaignService#get
+//     https://developers.google.com/adwords/api/docs/reference/v201710/CampaignService#get
 //
 func (s *CampaignService) Get(selector Selector) (campaigns []Campaign, totalCount int64, err error) {
 	selector.XMLName = xml.Name{"", "serviceSelector"}
@@ -249,7 +390,7 @@ func (s *CampaignService) Get(selector Selector) (campaigns []Campaign, totalCou
 //
 // Relevant documentation
 //
-//     https://developers.google.com/adwords/api/docs/reference/v201409/CampaignService#mutate
+//     https://developers.google.com/adwords/api/docs/reference/v201710/CampaignService#mutate
 //
 func (s *CampaignService) Mutate(campaignOperations CampaignOperations) (campaigns []Campaign, err error) {
 	type campaignOperation struct {
@@ -259,6 +400,15 @@ func (s *CampaignService) Mutate(campaignOperations CampaignOperations) (campaig
 	operations := []campaignOperation{}
 	for action, campaigns := range campaignOperations {
 		for _, campaign := range campaigns {
+			// you can't mutate those fields
+			// if you want to perform campaign mutate from campaign get
+			// you can't.
+			campaign.CampaignTrialType = nil
+			campaign.AdServingOptimizationStatus = ""
+			// you can't mutate this field too
+			//if campaign.BiddingStrategyConfiguration != nil {
+			//	campaign.BiddingStrategyConfiguration.StrategyType = ""
+			//}
 			operations = append(operations,
 				campaignOperation{
 					Action:   action,
@@ -281,11 +431,16 @@ func (s *CampaignService) Mutate(campaignOperations CampaignOperations) (campaig
 		return campaigns, err
 	}
 	mutateResp := struct {
+		BaseResponse
 		Campaigns []Campaign `xml:"rval>value"`
 	}{}
 	err = xml.Unmarshal([]byte(respBody), &mutateResp)
 	if err != nil {
 		return campaigns, err
+	}
+
+	if len(mutateResp.PartialFailureErrors) > 0 {
+		err = mutateResp.PartialFailureErrors
 	}
 
 	return mutateResp.Campaigns, err
@@ -308,7 +463,7 @@ func (s *CampaignService) Mutate(campaignOperations CampaignOperations) (campaig
 //
 // Relevant documentation
 //
-//     https://developers.google.com/adwords/api/docs/reference/v201409/CampaignService#mutateLabel
+//     https://developers.google.com/adwords/api/docs/reference/v201710/CampaignService#mutateLabel
 //
 func (s *CampaignService) MutateLabel(campaignLabelOperations CampaignLabelOperations) (campaignLabels []CampaignLabel, err error) {
 	type campaignLabelOperation struct {
@@ -340,11 +495,16 @@ func (s *CampaignService) MutateLabel(campaignLabelOperations CampaignLabelOpera
 		return campaignLabels, err
 	}
 	mutateResp := struct {
+		BaseResponse
 		CampaignLabels []CampaignLabel `xml:"rval>value"`
 	}{}
 	err = xml.Unmarshal([]byte(respBody), &mutateResp)
 	if err != nil {
 		return campaignLabels, err
+	}
+
+	if len(mutateResp.PartialFailureErrors) > 0 {
+		err = mutateResp.PartialFailureErrors
 	}
 
 	return mutateResp.CampaignLabels, err
@@ -354,7 +514,7 @@ func (s *CampaignService) MutateLabel(campaignLabelOperations CampaignLabelOpera
 //
 // Relevant documentation
 //
-//     https://developers.google.com/adwords/api/docs/reference/v201409/CampaignService#query
+//     https://developers.google.com/adwords/api/docs/reference/v201710/CampaignService#query
 //
 func (s *CampaignService) Query(query string) (campaigns []Campaign, totalCount int64, err error) {
 	return campaigns, totalCount, ERROR_NOT_YET_IMPLEMENTED
