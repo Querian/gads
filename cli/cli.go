@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/emiddleton/gads"
+	"gitlab.prod.twenga.lan/b2c-go/gads"
 	"golang.org/x/oauth2"
 	"log"
 )
@@ -27,7 +27,6 @@ func main() {
 			Fields: []string{
 				"BudgetId",
 				"BudgetName",
-				"Period",
 				"Amount",
 				"DeliveryMethod",
 				"BudgetReferenceCount",

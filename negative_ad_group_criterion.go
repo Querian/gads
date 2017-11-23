@@ -20,7 +20,11 @@ func (nagc NegativeAdGroupCriterion) MarshalXML(e *xml.Encoder, start xml.StartE
 	)
 	e.EncodeToken(start)
 	e.EncodeElement(&nagc.AdGroupId, xml.StartElement{Name: xml.Name{"", "adGroupId"}})
-	criterionMarshalXML(nagc.Criterion, e)
+	e.EncodeElement(
+		&nagc.Criterion,
+		xml.StartElement{xml.Name{"", "criterion"}, []xml.Attr{}},
+	)
+
 	e.EncodeToken(start.End())
 	return nil
 }
@@ -47,7 +51,9 @@ func (nagc *NegativeAdGroupCriterion) UnmarshalXML(dec *xml.Decoder, start xml.S
 			case "AdGroupCriterion.Type":
 				break
 			default:
-				return fmt.Errorf("unknown NegativeAdGroupCriterion field %s", tag)
+				if StrictMode {
+					return fmt.Errorf("unknown NegativeAdGroupCriterion field %s", tag)
+				}
 			}
 		}
 	}

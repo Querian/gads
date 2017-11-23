@@ -10,7 +10,7 @@ func testAdGroupCriterionService(t *testing.T) (service *AdGroupCriterionService
 }
 
 func TestAdGroupCriterion(t *testing.T) {
-	adGroup, cleanupAdGroup := testAdGroup(nil)
+	adGroup, cleanupAdGroup := testAdGroup(t)
 	defer cleanupAdGroup()
 
 	agcs := testAdGroupCriterionService(t)
@@ -37,6 +37,13 @@ func TestAdGroupCriterion(t *testing.T) {
 					AdGroupId:  adGroup.Id,
 					Criterion:  KeywordCriterion{Text: "test1", MatchType: "EXACT"},
 					UserStatus: "PAUSED",
+					BiddingStrategyConfiguration: &BiddingStrategyConfiguration{
+						StrategyId:   10,
+						StrategyType: "MANUAL_CPC",
+						Scheme: &BiddingScheme{
+							Type: "TEST",
+						},
+					},
 				},
 				BiddableAdGroupCriterion{
 					AdGroupId:  adGroup.Id,
@@ -55,24 +62,6 @@ func TestAdGroupCriterion(t *testing.T) {
 				BiddableAdGroupCriterion{
 					AdGroupId:  adGroup.Id,
 					Criterion:  PlacementCriterion{Url: "https://classdo.com"},
-					UserStatus: "PAUSED",
-				},
-				// NewBiddableAdGroupCriterion(adGroup.Id, NewUserInterestCriterion()),
-				// NewBiddableAdGroupCriterion(adGroup.Id, NewUserListCriterion()),
-				// NewBiddableAdGroupCriterion(adGroup.Id, NewVerticalCriterion(0, 0, []string{"Pets & Anamals","Pets","Dogs"})),
-				BiddableAdGroupCriterion{
-					AdGroupId: adGroup.Id,
-					Criterion: WebpageCriterion{
-						Parameter: WebpageParameter{
-							CriterionName: "test criterion",
-							Conditions: []WebpageCondition{
-								WebpageCondition{
-									Operand:  "URL",
-									Argument: "example.com",
-								},
-							},
-						},
-					},
 					UserStatus: "PAUSED",
 				},
 			},
