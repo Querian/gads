@@ -1,16 +1,18 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/toqueteos/webbrowser"
-	"gitlab.prod.twenga.lan/b2c-go/gads"
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
 	"io/ioutil"
 	"log"
+
+	"github.com/querian/gads"
+	"github.com/toqueteos/webbrowser"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 )
 
 var (
@@ -42,7 +44,7 @@ func main() {
 	if _, err := fmt.Scan(&code); err != nil {
 		log.Panic(err)
 	}
-	tok, err := conf.Exchange(oauth2.NoContext, code)
+	tok, err := conf.Exchange(context.Background(), code)
 	if err != nil {
 		log.Panic(err)
 	}
