@@ -2,9 +2,11 @@ package main
 
 import (
 	"crypto/rand"
-	"gitlab.prod.twenga.lan/b2c-go/gads"
-	"golang.org/x/oauth2"
 	"log"
+
+	"context"
+
+	"github.com/querian/gads"
 )
 
 func rand_str(str_size int) string {
@@ -18,13 +20,13 @@ func rand_str(str_size int) string {
 }
 
 func main() {
-	config, err := gads.NewCredentials(oauth2.NoContext)
+	config, err := gads.NewCredentials(context.Background())
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	ags := gads.NewAdGroupService(config.Auth)
-	foundAdGroups, err := ags.Get(
+	ags := gads.NewAdGroupService(&config.Auth)
+	foundAdGroups, _, err := ags.Get(
 		gads.Selector{
 			Fields: []string{
 				"Id",
@@ -49,8 +51,8 @@ func main() {
 	_, err = ags.Mutate(gads.AdGroupOperations{"SET": foundAdGroups})
 
 	// Remove all Campaigns
-	cs := gads.NewCampaignService(config.Auth)
-	foundCampaigns, err := cs.Get(
+	cs := gads.NewCampaignService(&config.Auth)
+	foundCampaigns, _, err := cs.Get(
 		gads.Selector{
 			Fields: []string{
 				"Id",
@@ -72,7 +74,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	for idx, _ := range foundCampaigns {
+	for idx := range foundCampaigns {
 		foundCampaigns[idx].Status = "REMOVED"
 		foundCampaigns[idx].Name = rand_str(20)
 	}
@@ -82,8 +84,8 @@ func main() {
 	}
 
 	// Remove all budgets
-	bs := gads.NewBudgetService(config.Auth)
-	foundBudgets, err := bs.Get(gads.Selector{Fields: []string{"BudgetId", "BudgetName", "Amount", "DeliveryMethod"}})
+	bs := gads.NewBudgetService(&config.Auth)
+	foundBudgets, _, err := bs.Get(gads.Selector{Fields: []string{"BudgetId", "BudgetName", "Amount", "DeliveryMethod"}})
 	if err != nil {
 		log.Fatal(err)
 	}
