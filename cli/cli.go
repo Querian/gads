@@ -3,17 +3,19 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"gitlab.prod.twenga.lan/b2c-go/gads"
-	"golang.org/x/oauth2"
 	"log"
+
+	"context"
+
+	"github.com/querian/gads"
 )
 
 func main() {
-	config, err := gads.NewCredentials(oauth2.NoContext)
+	config, err := gads.NewCredentials(context.Background())
 	if err != nil {
 		log.Fatal(err)
 	}
-	bs := gads.NewBudgetService(config.Auth)
+	bs := gads.NewBudgetService(&config.Auth)
 
 	var pageSize int64 = 500
 	var offset int64 = 0
@@ -50,7 +52,7 @@ func main() {
 	}
 
 	// show all Campaigns
-	cs := gads.NewCampaignService(config.Auth)
+	cs := gads.NewCampaignService(&config.Auth)
 	offset = 0
 	paging = gads.Paging{
 		Offset: offset,
@@ -99,7 +101,7 @@ func main() {
 		}
 	}
 
-	ags := gads.NewAdGroupService(config.Auth)
+	ags := gads.NewAdGroupService(&config.Auth)
 	offset = 0
 	paging = gads.Paging{
 		Offset: offset,
@@ -141,7 +143,7 @@ func main() {
 		}
 	}
 
-	agas := gads.NewAdGroupAdService(config.Auth)
+	agas := gads.NewAdGroupAdService(&config.Auth)
 	offset = 0
 	paging = gads.Paging{
 		Offset: offset,
