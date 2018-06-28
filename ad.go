@@ -3,7 +3,7 @@ package gads
 import "encoding/xml"
 
 // CommonAd define the parent type Ad type as defined
-// https://developers.google.com/adwords/api/docs/reference/v201710/AdGroupAdService.Ad
+// https://developers.google.com/adwords/api/docs/reference/v201806/AdGroupAdService.Ad
 type CommonAd struct {
 	Type                string            `xml:"xsi:type,attr,omitempty"`
 	ID                  int64             `xml:"id,omitempty"`
@@ -110,7 +110,7 @@ func (c ExpandedTextAd) CloneForTemplate(finalURLs []string, trackingURLTemplate
 }
 
 // TextAd represents the TextAd object as documented here
-// https://developers.google.com/adwords/api/docs/reference/v201710/AdGroupAdService.TextAd
+// https://developers.google.com/adwords/api/docs/reference/v201806/AdGroupAdService.TextAd
 type TextAd struct {
 	CommonAd
 	Headline     string `xml:"headline"`
@@ -123,7 +123,7 @@ type ProductAd struct {
 }
 
 // DynamicSearchAd represents the equivalent object documented here
-// https://developers.google.com/adwords/api/docs/reference/v201710/AdGroupAdService.DynamicSearchAd
+// https://developers.google.com/adwords/api/docs/reference/v201806/AdGroupAdService.DynamicSearchAd
 type DynamicSearchAd struct {
 	CommonAd
 	Description1 string `xml:"description1"`
@@ -131,7 +131,7 @@ type DynamicSearchAd struct {
 }
 
 // ImageAd represents the equivalent object documented here
-// https://developers.google.com/adwords/api/docs/reference/v201710/AdGroupAdService.ImageAd
+// https://developers.google.com/adwords/api/docs/reference/v201806/AdGroupAdService.ImageAd
 type ImageAd struct {
 	CommonAd
 	Image             int64  `xml:"imageId"` //TODO should actually be Image object, not just an int
@@ -140,7 +140,7 @@ type ImageAd struct {
 }
 
 // TemplateAd represents the equivalent object documented here
-// https://developers.google.com/adwords/api/docs/reference/v201710/AdGroupAdService.TemplateAd
+// https://developers.google.com/adwords/api/docs/reference/v201806/AdGroupAdService.TemplateAd
 type TemplateAd struct {
 	CommonAd
 	TemplateID       int64             `xml:"templateId"`
@@ -153,7 +153,7 @@ type TemplateAd struct {
 }
 
 // ExpandedTextAd epresents the equivalent object documented here
-// https://developers.google.com/adwords/api/docs/reference/v201710/AdGroupAdService.ExpandedTextAd
+// https://developers.google.com/adwords/api/docs/reference/v201806/AdGroupAdService.ExpandedTextAd
 type ExpandedTextAd struct {
 	CommonAd
 	HeadlinePart1 string `xml:"headlinePart1"`

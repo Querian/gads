@@ -14,7 +14,7 @@ import (
 
 const (
 	// https://developers.google.com/adwords/api/docs/reference/
-	apiVersion         = "v201710"
+	apiVersion         = "v201806"
 	baseUrl            = "https://adwords.google.com/api/adwords/cm/" + apiVersion
 	rmktgBaseUrl       = "https://adwords.google.com/api/adwords/rm/" + apiVersion
 	managedCustomerUrl = "https://adwords.google.com/api/adwords/mcm/" + apiVersion
@@ -206,6 +206,8 @@ func (a *Auth) request(
 		return []byte{}, err
 	}
 
+	//fmt.Println(string(reqBody[:]))
+
 	req, err := http.NewRequest("POST", serviceUrl.String(), bytes.NewReader(reqBody))
 	req.Header.Add("Accept", "text/xml")
 	req.Header.Add("Accept", "multipart/*")
@@ -225,6 +227,8 @@ func (a *Auth) request(
 	if a.Testing != nil {
 		a.Testing.Logf("respBody ->\n%s\n%s\n", string(respBody), resp.Status)
 	}
+
+	//fmt.Println(string(respBody[:]))
 
 	type soapRespHeader struct {
 		RequestId    string `xml:"requestId"`
