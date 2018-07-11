@@ -53,7 +53,7 @@ type LabelOperations map[string][]Label
 //
 // Relevant documentation
 //
-//     https://developers.google.com/adwords/api/docs/reference/v201710/LabelService#get
+//     https://developers.google.com/adwords/api/docs/reference/v201806/LabelService#get
 //
 func (s LabelService) Get(selector Selector) (labels []Label, totalCount int64, err error) {
 	selector.XMLName = xml.Name{"", "serviceSelector"}
@@ -107,7 +107,7 @@ func (s LabelService) Get(selector Selector) (labels []Label, totalCount int64, 
 //
 // Relevant documentation
 //
-//     https://developers.google.com/adwords/api/docs/reference/v201710/LabelService#mutate
+//     https://developers.google.com/adwords/api/docs/reference/v201806/LabelService#mutate
 //
 func (s *LabelService) Mutate(labelOperations LabelOperations) (labels []Label, err error) {
 	type labelOperation struct {
@@ -159,7 +159,7 @@ func (s *LabelService) Mutate(labelOperations LabelOperations) (labels []Label, 
 //
 // Relevant documentation
 //
-//     https://developers.google.com/adwords/api/docs/reference/v201710/LabelService#query
+//     https://developers.google.com/adwords/api/docs/reference/v201806/LabelService#query
 //
 func (s *LabelService) Query(query string) (labels []Label, totalCount int64, err error) {
 	return labels, totalCount, ERROR_NOT_YET_IMPLEMENTED

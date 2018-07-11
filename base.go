@@ -14,7 +14,7 @@ import (
 
 const (
 	// https://developers.google.com/adwords/api/docs/reference/
-	apiVersion         = "v201710"
+	apiVersion         = "v201806"
 	baseUrl            = "https://adwords.google.com/api/adwords/cm/" + apiVersion
 	rmktgBaseUrl       = "https://adwords.google.com/api/adwords/rm/" + apiVersion
 	managedCustomerUrl = "https://adwords.google.com/api/adwords/mcm/" + apiVersion

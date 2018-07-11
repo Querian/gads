@@ -191,7 +191,7 @@ func NewSimilarUserList(name, description, status, integrationCode string, membe
 //
 // Relevant documentation
 //
-//     https://developers.google.com/adwords/api/docs/reference/v201710/AdwordsUserListService#get
+//     https://developers.google.com/adwords/api/docs/reference/v201806/AdwordsUserListService#get
 //
 func (s AdwordsUserListService) Get(selector Selector) (userLists []UserList, err error) {
 	selector.XMLName = xml.Name{"", "serviceSelector"}
@@ -228,11 +228,11 @@ func (s AdwordsUserListService) Get(selector Selector) (userLists []UserList, er
 //
 // Relevant documentation
 //
-//     https://developers.google.com/adwords/api/docs/reference/v201710/AdwordsUserListService#mutate
+//     https://developers.google.com/adwords/api/docs/reference/v201806/AdwordsUserListService#mutate
 //
 func (s *AdwordsUserListService) Mutate(userListOperations UserListOperations) (adwordsUserLists []UserList, err error) {
 	type userListOperation struct {
-		Action   string   `xml:"https://adwords.google.com/api/adwords/cm/v201710 operator"`
+		Action   string   `xml:"https://adwords.google.com/api/adwords/cm/v201806 operator"`
 		UserList UserList `xml:"operand"`
 	}
 	operations := []userListOperation{}
