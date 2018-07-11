@@ -47,7 +47,6 @@ func (c *CommonConversionTracker) GetStatus() string {
 type AdWordsConversionTracker struct {
 	*CommonConversionTracker
 	Type                   string `xml:"xsi:type,attr,omitempty"`
-	Snippet                string `xml:"snippet,omitempty"`
 	TextFormat             string `xml:"textFormat,omitempty"`
 	ConversionPageLanguage string `xml:"ConversionPageLanguage,omitempty"`
 	BackgroundColor        string `xml:"backgroundColor,omitempty"`
