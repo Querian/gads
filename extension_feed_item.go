@@ -10,10 +10,6 @@ type CommonExtensionFeedItem struct {
 	FeedType   string  `xml:"feedType,omitempty"`
 	StartTime  string  `xml:"startTime,omitempty"`
 	EndTime    *string `xml:"endTime"`
-	// devicePreference
-	// scheduling
-	// policyData
-	// end common
 }
 
 // ExtensionFeedItem is an interface all extension feed item implements
@@ -40,7 +36,7 @@ func (e *CommonExtensionFeedItem) GetType() string {
 
 // SitelinkFeedItem represents a sitelink extension.
 //
-// see https://developers.google.com/adwords/api/docs/reference/v201710/CampaignExtensionSettingService.SitelinkFeedItem
+// see https://developers.google.com/adwords/api/docs/reference/v201806/CampaignExtensionSettingService.SitelinkFeedItem
 type SitelinkFeedItem struct {
 	*CommonExtensionFeedItem
 	Text                string   `xml:"sitelinkText"`

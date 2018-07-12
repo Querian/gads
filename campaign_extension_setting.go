@@ -5,13 +5,13 @@ import (
 	"fmt"
 )
 
-// CampaignExtensionSettingService (v201710)
+// CampaignExtensionSettingService (v201806)
 // Service used to manage extensions at the campaign level.
 // The extensions are managed by AdWords using existing feed services,
 // including creating and modifying feeds, feed items,
 // and campaign feeds for the user.
 //
-// see https://developers.google.com/adwords/api/docs/reference/v201710/CampaignExtensionSettingService
+// see https://developers.google.com/adwords/api/docs/reference/v201806/CampaignExtensionSettingService
 type CampaignExtensionSettingService struct {
 	Auth
 }
@@ -19,7 +19,7 @@ type CampaignExtensionSettingService struct {
 // CampaignExtensionSetting is used to add or
 // modify extensions being served for the specified campaign.
 //
-// see https://developers.google.com/adwords/api/docs/reference/v201710/CampaignExtensionSettingService.CampaignExtensionSetting
+// see https://developers.google.com/adwords/api/docs/reference/v201806/CampaignExtensionSettingService.CampaignExtensionSetting
 type CampaignExtensionSetting struct {
 	CampaignID       int64             `xml:"campaignId,omitempty"`
 	ExtensionType    string            `xml:"extensionType"`
@@ -70,7 +70,7 @@ func (ex *ExtensionFeedItems) UnmarshalXML(dec *xml.Decoder, start xml.StartElem
 // ExtensionSetting specifies when and which extensions should serve
 // at a given level (customer, campaign, or ad group).
 //
-// see https://developers.google.com/adwords/api/docs/reference/v201710/CampaignExtensionSettingService.ExtensionSetting
+// see https://developers.google.com/adwords/api/docs/reference/v201806/CampaignExtensionSettingService.ExtensionSetting
 type ExtensionSetting struct {
 	Extensions            ExtensionFeedItems `xml:"extensions"`
 	PlateformRestrictions string             `xml:"platformRestrictions"`
@@ -93,7 +93,7 @@ func NewCampaignExtensionSettingService(auth *Auth) *CampaignExtensionSettingSer
 // Get returns an array of CampaignExtensionSettings' and
 // the total number of CampaignExtensionSettings' matching the selector.
 //
-// see https://developers.google.com/adwords/api/docs/reference/v201710/CampaignExtensionSettingService#get
+// see https://developers.google.com/adwords/api/docs/reference/v201806/CampaignExtensionSettingService#get
 func (s *CampaignExtensionSettingService) Get(selector Selector) (
 	extensionSettings []CampaignExtensionSetting,
 	totalCount int64,
@@ -133,7 +133,7 @@ func (s *CampaignExtensionSettingService) Get(selector Selector) (
 // Mutate allows you to add, modify and remove CampaignExtensionSetting, returning the
 // modified ones.
 //
-// see https://developers.google.com/adwords/api/docs/reference/v201710/CampaignExtensionSettingService#mutate
+// see https://developers.google.com/adwords/api/docs/reference/v201806/CampaignExtensionSettingService#mutate
 func (s *CampaignExtensionSettingService) Mutate(
 	campaignExtensionSettingOperations CampaignExtensionSettingOperations,
 ) (campaignExtensionSettings []CampaignExtensionSetting, err error) {
@@ -190,7 +190,7 @@ func (s *CampaignExtensionSettingService) Mutate(
 // Query allows to use AWQL to Get CampaignExtensionSettings matching
 // the query
 //
-// see https://developers.google.com/adwords/api/docs/reference/v201710/CampaignExtensionSettingService#query
+// see https://developers.google.com/adwords/api/docs/reference/v201806/CampaignExtensionSettingService#query
 func (s *CampaignExtensionSettingService) Query(query string) (campaignExtensionSettings []CampaignExtensionSetting, totalCount int64, err error) {
 
 	respBody, err := s.Auth.request(

@@ -153,7 +153,7 @@ type ServiceLinkOperations map[string][]ServiceLink
 
 func (s *CustomerService) MutateServiceLinks(ops ServiceLinkOperations) (links []ServiceLink, err error) {
 	type linkOperation struct {
-		Action      string      `xml:"https://adwords.google.com/api/adwords/cm/v201710 operator"`
+		Action      string      `xml:"https://adwords.google.com/api/adwords/cm/v201806 operator"`
 		ServiceLink ServiceLink `xml:"operand"`
 	}
 	operations := []linkOperation{}

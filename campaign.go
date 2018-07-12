@@ -154,21 +154,6 @@ func (s *TargetRoasBiddingScheme) GetType() string {
 	return s.Type
 }
 
-// EnhancedCpcBiddingScheme struct for EnhancedCpcBiddingScheme
-type EnhancedCpcBiddingScheme struct {
-	Type string `xml:"http://www.w3.org/2001/XMLSchema-instance type,attr"`
-}
-
-// NewEnhancedCpcBiddingScheme returns new instance of EnhancedCpcBiddingScheme
-func NewEnhancedCpcBiddingScheme() *EnhancedCpcBiddingScheme {
-	return &EnhancedCpcBiddingScheme{Type: `EnhancedCpcBiddingScheme`}
-}
-
-// GetType return type of bidding scheme
-func (s *EnhancedCpcBiddingScheme) GetType() string {
-	return s.Type
-}
-
 func biddingSchemeUnmarshalXML(dec *xml.Decoder, start xml.StartElement) (BiddingSchemeInterface, error) {
 	biddingSchemeType, err := findAttr(start.Attr, xml.Name{Space: "http://www.w3.org/2001/XMLSchema-instance", Local: "type"})
 	if err != nil {
@@ -180,9 +165,6 @@ func biddingSchemeUnmarshalXML(dec *xml.Decoder, start xml.StartElement) (Biddin
 		return c, dec.DecodeElement(c, &start)
 	case "TargetRoasBiddingScheme":
 		c := &TargetRoasBiddingScheme{Type: biddingSchemeType}
-		return c, dec.DecodeElement(c, &start)
-	case "EnhancedCpcBiddingScheme":
-		c := &EnhancedCpcBiddingScheme{Type: biddingSchemeType}
 		return c, dec.DecodeElement(c, &start)
 	default:
 		if StrictMode {
@@ -325,7 +307,7 @@ type CampaignLabelOperations map[string][]CampaignLabel
 //
 // Relevant documentation
 //
-//     https://developers.google.com/adwords/api/docs/reference/v201710/CampaignService#get
+//     https://developers.google.com/adwords/api/docs/reference/v201806/CampaignService#get
 //
 func (s *CampaignService) Get(selector Selector) (campaigns []Campaign, totalCount int64, err error) {
 	selector.XMLName = xml.Name{"", "serviceSelector"}
@@ -390,7 +372,7 @@ func (s *CampaignService) Get(selector Selector) (campaigns []Campaign, totalCou
 //
 // Relevant documentation
 //
-//     https://developers.google.com/adwords/api/docs/reference/v201710/CampaignService#mutate
+//     https://developers.google.com/adwords/api/docs/reference/v201806/CampaignService#mutate
 //
 func (s *CampaignService) Mutate(campaignOperations CampaignOperations) (campaigns []Campaign, err error) {
 	type campaignOperation struct {
@@ -463,7 +445,7 @@ func (s *CampaignService) Mutate(campaignOperations CampaignOperations) (campaig
 //
 // Relevant documentation
 //
-//     https://developers.google.com/adwords/api/docs/reference/v201710/CampaignService#mutateLabel
+//     https://developers.google.com/adwords/api/docs/reference/v201806/CampaignService#mutateLabel
 //
 func (s *CampaignService) MutateLabel(campaignLabelOperations CampaignLabelOperations) (campaignLabels []CampaignLabel, err error) {
 	type campaignLabelOperation struct {
@@ -514,7 +496,7 @@ func (s *CampaignService) MutateLabel(campaignLabelOperations CampaignLabelOpera
 //
 // Relevant documentation
 //
-//     https://developers.google.com/adwords/api/docs/reference/v201710/CampaignService#query
+//     https://developers.google.com/adwords/api/docs/reference/v201806/CampaignService#query
 //
 func (s *CampaignService) Query(query string) (campaigns []Campaign, totalCount int64, err error) {
 	return campaigns, totalCount, ERROR_NOT_YET_IMPLEMENTED
