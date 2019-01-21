@@ -23,6 +23,37 @@ type AdGroupBidModifier struct {
 	BidModifierSource string    `xml:"bidModifierSource"`
 }
 
+// Get returns budgets matching a given selector and the total count of matching budgets.
+func (s *AdGroupBidModifierService) Get(selector Selector) (bm []AdGroupBidModifier, totalCount int64, err error) {
+	selector.XMLName = xml.Name{"", "selector"}
+	respBody, err := s.Auth.request(
+		adGroupBidModifierServiceUrl,
+		"get",
+		struct {
+			XMLName xml.Name
+			Sel     Selector
+		}{
+			XMLName: xml.Name{
+				Space: baseUrl,
+				Local: "get",
+			},
+			Sel: selector,
+		},
+	)
+	if err != nil {
+		return bm, totalCount, err
+	}
+	getResp := struct {
+		Size                int64                `xml:"rval>totalNumEntries"`
+		AdGroupBidModifiers []AdGroupBidModifier `xml:"rval>entries"`
+	}{}
+	err = xml.Unmarshal([]byte(respBody), &getResp)
+	if err != nil {
+		return bm, totalCount, err
+	}
+	return getResp.AdGroupBidModifiers, getResp.Size, err
+}
+
 // Mutate takes a budgetOperations and creates, modifies or destroys the associated budgets.
 func (s *AdGroupBidModifierService) Mutate(bidmOperations AdGroupBidModifierOperations) (resp []AdGroupBidModifier, err error) {
 	type bidmOperation struct {
