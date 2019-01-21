@@ -23,6 +23,42 @@ type AdGroupBidModifier struct {
 	BidModifierSource string    `xml:"bidModifierSource"`
 }
 
+func (cc *AdGroupBidModifier) UnmarshalXML(dec *xml.Decoder, start xml.StartElement) error {
+	for token, err := dec.Token(); err == nil; token, err = dec.Token() {
+		if err != nil {
+			return err
+		}
+		switch start := token.(type) {
+		case xml.StartElement:
+			switch start.Name.Local {
+			case "campaignId":
+				if err := dec.DecodeElement(&cc.CampaignId, &start); err != nil {
+					return err
+				}
+			case "adGroupId":
+				if err := dec.DecodeElement(&cc.AdGroupId, &start); err != nil {
+					return err
+				}
+			case "criterion":
+				criterion, err := criterionUnmarshalXML(dec, start)
+				if err != nil {
+					return err
+				}
+				cc.Criterion = criterion
+			case "bidModifier":
+				if err := dec.DecodeElement(&cc.BidModifier, &start); err != nil {
+					return err
+				}
+			case "bidModifierSource":
+				if err := dec.DecodeElement(&cc.BidModifierSource, &start); err != nil {
+					return err
+				}
+			}
+		}
+	}
+	return nil
+}
+
 // Get returns budgets matching a given selector and the total count of matching budgets.
 func (s *AdGroupBidModifierService) Get(selector Selector) (bm []AdGroupBidModifier, totalCount int64, err error) {
 	selector.XMLName = xml.Name{"", "selector"}
