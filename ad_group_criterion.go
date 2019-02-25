@@ -140,7 +140,7 @@ type AdGroupCriterionOperations map[string]AdGroupCriterions
 //
 // Relevant documentation
 //
-//     https://developers.google.com/adwords/api/docs/reference/v201806/AdGroupCriterionService#get
+//     https://developers.google.com/adwords/api/docs/reference/v201809/AdGroupCriterionService#get
 //
 func (s AdGroupCriterionService) Get(selector Selector) (adGroupCriterions AdGroupCriterions, totalCount int64, err error) {
 	selector.XMLName = xml.Name{"", "serviceSelector"}
@@ -201,7 +201,7 @@ func (s AdGroupCriterionService) Get(selector Selector) (adGroupCriterions AdGro
 //
 // Relevant documentation
 //
-//     https://developers.google.com/adwords/api/docs/reference/v201806/AdGroupCriterionService#mutate
+//     https://developers.google.com/adwords/api/docs/reference/v201809/AdGroupCriterionService#mutate
 //
 func (s *AdGroupCriterionService) Mutate(adGroupCriterionOperations AdGroupCriterionOperations) (adGroupCriterions AdGroupCriterions, err error) {
 	type adGroupCriterionOperation struct {
@@ -285,7 +285,7 @@ func (s *AdGroupCriterionService) Mutate(adGroupCriterionOperations AdGroupCrite
 //
 // Relevant documentation
 //
-//     https://developers.google.com/adwords/api/docs/reference/v201806/AdGroupCriterionService#mutateLabel
+//     https://developers.google.com/adwords/api/docs/reference/v201809/AdGroupCriterionService#mutateLabel
 //
 func (s *AdGroupCriterionService) MutateLabel(adGroupCriterionLabelOperations AdGroupCriterionLabelOperations) (adGroupCriterionLabels []AdGroupCriterionLabel, err error) {
 	type adGroupCriterionLabelOperation struct {
@@ -336,7 +336,7 @@ func (s *AdGroupCriterionService) MutateLabel(adGroupCriterionLabelOperations Ad
 //
 // Relevant documentation
 //
-//     https://developers.google.com/adwords/api/docs/reference/v201806/AdGroupCriterionService#query
+//     https://developers.google.com/adwords/api/docs/reference/v201809/AdGroupCriterionService#query
 //
 func (s *AdGroupCriterionService) Query(query string) (adGroupCriterions AdGroupCriterions, err error) {
 	return adGroupCriterions, ERROR_NOT_YET_IMPLEMENTED

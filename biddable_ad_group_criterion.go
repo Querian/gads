@@ -15,7 +15,6 @@ type BiddableAdGroupCriterion struct {
 	SystemServingStatus string   `xml:"systemServingStatus,omitempty"`
 	ApprovalStatus      string   `xml:"approvalStatus,omitempty"`
 	DisapprovalReasons  []string `xml:"disapprovalReasons,omitempty"`
-	DestinationUrl      *string  `xml:"destinationUrl"`
 
 	FirstPageCpc *Cpc `xml:"firstPageCpc>amount,omitempty"`
 	TopOfPageCpc *Cpc `xml:"topOfPageCpc>amount,omitempty"`
@@ -64,10 +63,6 @@ func (bagc *BiddableAdGroupCriterion) UnmarshalXML(dec *xml.Decoder, start xml.S
 				}
 			case "disapprovalReasons":
 				if err := dec.DecodeElement(&bagc.DisapprovalReasons, &start); err != nil {
-					return err
-				}
-			case "destinationUrl":
-				if err := dec.DecodeElement(&bagc.DestinationUrl, &start); err != nil {
 					return err
 				}
 			case "firstPageCpc":
