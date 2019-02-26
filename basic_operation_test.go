@@ -343,7 +343,6 @@ func ExampleAdGroupCriterionService_Mutate() {
 	agcs := NewAdGroupCriterionService(&authConf.Auth)
 
 	var adGroupId int64 = 1
-	destination := "http://example.com/mars"
 
 	// This example illustrates how to add multiple keywords to a given ad group.
 	adGroupCriterions, err := agcs.Mutate(
@@ -356,7 +355,6 @@ func ExampleAdGroupCriterionService_Mutate() {
 						MatchType: "BROAD",
 					},
 					UserStatus:     "PAUSED",
-					DestinationUrl: &destination,
 				},
 				BiddableAdGroupCriterion{
 					AdGroupId: adGroupId,

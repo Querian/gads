@@ -307,7 +307,7 @@ type CampaignLabelOperations map[string][]CampaignLabel
 //
 // Relevant documentation
 //
-//     https://developers.google.com/adwords/api/docs/reference/v201806/CampaignService#get
+//     https://developers.google.com/adwords/api/docs/reference/v201809/CampaignService#get
 //
 func (s *CampaignService) Get(selector Selector) (campaigns []Campaign, totalCount int64, err error) {
 	selector.XMLName = xml.Name{"", "serviceSelector"}
@@ -372,7 +372,7 @@ func (s *CampaignService) Get(selector Selector) (campaigns []Campaign, totalCou
 //
 // Relevant documentation
 //
-//     https://developers.google.com/adwords/api/docs/reference/v201806/CampaignService#mutate
+//     https://developers.google.com/adwords/api/docs/reference/v201809/CampaignService#mutate
 //
 func (s *CampaignService) Mutate(campaignOperations CampaignOperations) (campaigns []Campaign, err error) {
 	type campaignOperation struct {
@@ -445,7 +445,7 @@ func (s *CampaignService) Mutate(campaignOperations CampaignOperations) (campaig
 //
 // Relevant documentation
 //
-//     https://developers.google.com/adwords/api/docs/reference/v201806/CampaignService#mutateLabel
+//     https://developers.google.com/adwords/api/docs/reference/v201809/CampaignService#mutateLabel
 //
 func (s *CampaignService) MutateLabel(campaignLabelOperations CampaignLabelOperations) (campaignLabels []CampaignLabel, err error) {
 	type campaignLabelOperation struct {
@@ -496,7 +496,7 @@ func (s *CampaignService) MutateLabel(campaignLabelOperations CampaignLabelOpera
 //
 // Relevant documentation
 //
-//     https://developers.google.com/adwords/api/docs/reference/v201806/CampaignService#query
+//     https://developers.google.com/adwords/api/docs/reference/v201809/CampaignService#query
 //
 func (s *CampaignService) Query(query string) (campaigns []Campaign, totalCount int64, err error) {
 	return campaigns, totalCount, ERROR_NOT_YET_IMPLEMENTED

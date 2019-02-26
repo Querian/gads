@@ -36,7 +36,7 @@ func (e *CommonExtensionFeedItem) GetType() string {
 
 // SitelinkFeedItem represents a sitelink extension.
 //
-// see https://developers.google.com/adwords/api/docs/reference/v201806/CampaignExtensionSettingService.SitelinkFeedItem
+// see https://developers.google.com/adwords/api/docs/reference/v201809/CampaignExtensionSettingService.SitelinkFeedItem
 type SitelinkFeedItem struct {
 	*CommonExtensionFeedItem
 	Text                string   `xml:"sitelinkText"`
