@@ -25,7 +25,7 @@ func NewManagedCustomerService(auth *Auth) *ManagedCustomerService {
 }
 
 // ManagedCustomer represents the accounts handled by the current clientCustomerID
-// https://developers.google.com/adwords/api/docs/reference/v201806/ManagedCustomerService.ManagedCustomer
+// https://developers.google.com/adwords/api/docs/reference/v201809/ManagedCustomerService.ManagedCustomer
 type ManagedCustomer struct {
 	Name                 string `xml:"name,omitempty"`
 	CustomerID           uint   `xml:"customerId,omitempty"`
@@ -41,7 +41,7 @@ type ManagedCustomerLinkOperations map[string][]*ManagedCustomerLink
 
 // ManagedCustomerLink represents the status of the link between the current
 // account and the account it manages
-// https://developers.google.com/adwords/api/docs/reference/v201806/ManagedCustomerService.ManagedCustomerLink
+// https://developers.google.com/adwords/api/docs/reference/v201809/ManagedCustomerService.ManagedCustomerLink
 type ManagedCustomerLink struct {
 	ManagerCustomerID      uint   `xml:"managerCustomerId,omitempty"`
 	ClientCustomerId       uint   `xml:"clientCustomerId,omitempty"`
@@ -51,7 +51,7 @@ type ManagedCustomerLink struct {
 }
 
 // ManagedCustomerLinkResult is the response of the MutateLink service
-// @see https://developers.google.com/adwords/api/docs/reference/v201806/ManagedCustomerService.MutateLinkResults
+// @see https://developers.google.com/adwords/api/docs/reference/v201809/ManagedCustomerService.MutateLinkResults
 type ManagedCustomerLinkResult struct {
 	Links []*ManagedCustomerLink `xml:"links,omitempty"`
 }
@@ -112,7 +112,7 @@ func (m *ManagedCustomerService) Get(selector Selector) (
 // MutateManager takes a budgetOperations and creates, modifies or destroys the associated budgets.
 func (m *ManagedCustomerService) MutateManager(mcmOps ManagedCustomerMoveOperations) (links []ManagedCustomerLink, err error) {
 	type managedCustomerMoveOperation struct {
-		Action               string              `xml:"https://adwords.google.com/api/adwords/cm/v201806 operator"`
+		Action               string              `xml:"https://adwords.google.com/api/adwords/cm/v201809 operator"`
 		Link                 ManagedCustomerLink `xml:"operand"`
 		OldManagerCustomerId uint                `xml:"oldManagerCustomerId"`
 	}
@@ -167,7 +167,7 @@ func (m *ManagedCustomerService) MutateManager(mcmOps ManagedCustomerMoveOperati
 func (m *ManagedCustomerService) MutateLink(mcl ManagedCustomerLinkOperations) ([]*ManagedCustomerLink, error) {
 
 	type linkOperation struct {
-		Action string               `xml:"https://adwords.google.com/api/adwords/cm/v201806 operator"`
+		Action string               `xml:"https://adwords.google.com/api/adwords/cm/v201809 operator"`
 		Link   *ManagedCustomerLink `xml:"operand"`
 	}
 
